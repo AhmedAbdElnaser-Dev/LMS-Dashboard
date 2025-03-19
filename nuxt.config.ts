@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import { defineNuxtConfig } from 'nuxt/config'
 import vuetify from 'vite-plugin-vuetify'
 import svgLoader from 'vite-svg-loader'
 
@@ -17,8 +18,14 @@ export default defineNuxtConfig({
     },
   },
 
+  runtimeConfig: {
+    public: {
+      baseURL: 'https://localhost:44332/api/',
+    },
+  },
+
   devtools: {
-    enabled: true,
+    enabled: false,
   },
 
   css: [
@@ -74,10 +81,7 @@ export default defineNuxtConfig({
   },
 
   // ℹ️ Disable source maps until this is resolved: https://github.com/vuetifyjs/vuetify-loader/issues/290
-  sourcemap: {
-    server: false,
-    client: false,
-  },
+  sourcemap: false,
 
   vue: {
     compilerOptions: {

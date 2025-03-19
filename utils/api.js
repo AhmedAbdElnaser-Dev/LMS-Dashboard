@@ -1,16 +1,14 @@
-export const $api = $fetch.create({
+import { useRuntimeConfig } from "#imports";
+import axios from "axios";
 
-  // Request interceptor
-  async onRequest({ options }) {
-    // Set baseUrl for all API calls
-    options.baseURL = useRuntimeConfig().public.apiBaseUrl || '/api'
+export default () => {
+	const config = useRuntimeConfig();
 
-    const accessToken = useCookie('accessToken').value
-    if (accessToken) {
-      options.headers = {
-        ...options.headers,
-        Authorization: `Bearer ${accessToken}`,
-      }
-    }
-  },
-})
+	return axios.create({
+		baseURL: config.public.baseURL,
+		withCredentials: true,
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+};
