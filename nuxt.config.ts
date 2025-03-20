@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     '@core/scss/template/index.scss',
     '@styles/styles.scss',
     '@/plugins/iconify/icons.css',
+    '~/middleware/auth.global.js'
   ],
 
   components: {

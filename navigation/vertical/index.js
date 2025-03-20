@@ -1,3 +1,4 @@
+// e.g., navigation.js
 export default [
   {
     title: 'Home',
@@ -5,8 +6,23 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Second page',
-    to: { name: 'second-page' },
-    icon: { icon: 'tabler-file' },
+    title: 'Books',
+    to: { name: 'dashboard-books' },
+    icon: { icon: 'tabler-book' },
   },
-]
+  {
+    title: 'Courses',
+    to: { name: 'dashboard-courses' },
+    icon: { icon: 'tabler-school' },
+  },
+  {
+    title: 'Departments',
+    to: { name: 'dashboard-departments' },
+    icon: { icon: 'tabler-building' },
+  },
+  {
+    title: 'Users',
+    to: { name: 'dashboard-users' },
+    icon: { icon: 'tabler-users' },
+  },
+];

@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue';
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue';
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant';
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png';
@@ -29,39 +30,46 @@ const authStore = useAuthStore();
 const loginError = ref(null);
 const router = useRouter();
 
+async function verify() {
+  try {
+    console.log('Calling verify...');
+    const result = await authStore.verifyUser();
+    console.log('Verify result:', authStore.user);
+    if (result && result.status === 200) {
+      console.log('Verification successful, redirecting to dashboard...');
+      router.push('/dashboard');
+    }
+  } catch (error) {
+    console.error('Verify failed:', error);
+  }
+}
+
+onMounted(() => {
+  console.log('Component mounted, triggering verify...');
+  verify();
+});
+
 async function handleLogin(e) {
-  e.preventDefault(); // Explicitly prevent default form submission to avoid page reload
+  e.preventDefault();
   const formData = {
     email: form.value.email,
     password: form.value.password,
     rememberMe: form.value.remember,
   };
   console.log("Form data:", formData);
-  loginError.value = null; // Clear any previous error messages
+  loginError.value = null;
 
   try {
-    const result = await authStore.login(formData); // Wait for login request to complete
+    const result = await authStore.login(formData);
     console.log("Login result:", result);
     if (result && result.status === 200) {
-      router.push('/dashboard'); // Navigate only on successful login
+      router.push('/dashboard');
     }
   } catch (error) {
     console.error("Login error:", error);
     loginError.value = error.message || 'Login failed. Please try again.';
   }
 }
-
-// Optional: Uncomment to redirect authenticated users on page load
-// onMounted(async () => {
-//   if (authStore.isAuthenticated) {
-//     try {
-//       await authStore.verifyUser();
-//       router.push('/dashboard');
-//     } catch (error) {
-//       loginError.value = error.message;
-//     }
-//   }
-// });
 </script>
 
 <template>
