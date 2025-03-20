@@ -5,7 +5,7 @@ export default () => {
 	const config = useRuntimeConfig();
 
 	return axios.create({
-		baseURL: config.public.baseURL,
+		baseURL: "https://localhost:44332/api",
 		withCredentials: true,
 		headers: {
 			"Content-Type": "application/json",

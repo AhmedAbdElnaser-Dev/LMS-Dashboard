@@ -1,5 +1,4 @@
-<!-- pages/index.vue -->
-<!-- <script setup>
+<script setup>
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '~/stores/authStore';
 
@@ -13,8 +12,9 @@ onMounted(() => {
     router.push('/login');
   }
 });
-</script> -->
+</script>
 
 <template>
   <div>Redirecting...</div>
 </template>
+

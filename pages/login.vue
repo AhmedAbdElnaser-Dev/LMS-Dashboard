@@ -9,7 +9,7 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png';
 import authV2MaskLight from '@images/pages/misc-mask-light.png';
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
 import { themeConfig } from '@themeConfig';
-import { useAuthStore } from '~/stores/authStore';
+import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 
 definePageMeta({
