@@ -47,7 +47,7 @@ export default defineNuxtConfig({
     }],
   },
 
-  plugins: ['@/plugins/vuetify/index.js', '@/plugins/iconify/index.js'],
+  plugins: ['@/plugins/vuetify/index.js', '@/plugins/iconify/index.js', '@/plugins/toast.js'],
 
   imports: {
     dirs: ['./@core/utils', './@core/composable/', './plugins/*/composables/*'],

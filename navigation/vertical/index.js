@@ -1,8 +1,7 @@
-// e.g., navigation.js
 export default [
   {
     title: 'Home',
-    to: { name: 'index' },
+    to: { name: 'dashboard' },
     icon: { icon: 'tabler-smart-home' },
   },
   {
@@ -11,14 +10,19 @@ export default [
     icon: { icon: 'tabler-book' },
   },
   {
-    title: 'Courses',
-    to: { name: 'dashboard-courses' },
-    icon: { icon: 'tabler-school' },
+    title: 'Categories',
+    to: { name: 'dashboard-categories' },
+    icon: { icon: 'tabler-category' },
   },
   {
     title: 'Departments',
     to: { name: 'dashboard-departments' },
     icon: { icon: 'tabler-building' },
+  },
+  {
+    title: 'Courses',
+    to: { name: 'dashboard-courses' },
+    icon: { icon: 'tabler-school' },
   },
   {
     title: 'Users',
