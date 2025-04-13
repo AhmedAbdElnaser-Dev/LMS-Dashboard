@@ -1,47 +1,50 @@
 <script setup>
-import { useBooksStore } from '@/stores/bookStore';
-import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { VBtn, VCard, VCardActions, VCardText, VTextField } from 'vuetify/components';
+import { useBooksStore } from '@/stores/useBookStore'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { VBtn, VCard, VCardActions, VCardText, VTextField } from 'vuetify/components'
 
-const route = useRoute();
-const booksStore = useBooksStore();
+const route = useRoute()
+const booksStore = useBooksStore()
 
 const form = ref({
   name: '',
   description: '',
-});
-const isTouched = ref(false);
+})
+
+const isTouched = ref(false)
 
 const isEditMode = computed(() => {
-  const ruTranslation = booksStore.selectedBook?.translations?.ru;
-  return ruTranslation && ruTranslation.name !== '';
-});
+  const ruTranslation = booksStore.selectedBook?.translations?.ru
+  
+  return ruTranslation && ruTranslation.name !== ''
+})
 
 onMounted(async () => {
   if (!booksStore.selectedBook && route.params.id) {
-    await booksStore.fetchBookById(route.params.id);
+    await booksStore.fetchBookById(route.params.id)
   }
 
-  const ruTranslation = booksStore.selectedBook?.translations?.ru;
-  form.value.name = ruTranslation?.name || '';
-  form.value.description = ruTranslation?.description || '';
-});
+  const ruTranslation = booksStore.selectedBook?.translations?.ru
+
+  form.value.name = ruTranslation?.name || ''
+  form.value.description = ruTranslation?.description || ''
+})
 
 const isFormValid = computed(
-  () => form.value.name.trim() !== '' && form.value.description.trim() !== ''
-);
+  () => form.value.name.trim() !== '' && form.value.description.trim() !== '',
+)
 
 const handleSubmit = async () => {
-  isTouched.value = true;
+  isTouched.value = true
   if (isFormValid.value) {
     await booksStore.submitTranslation({
       language: 'ru',
       name: form.value.name,
       description: form.value.description,
-    });
+    })
   }
-};
+}
 </script>
 
 <template>
@@ -75,10 +78,10 @@ const handleSubmit = async () => {
       <VBtn
         color="primary"
         variant="flat"
-        @click="handleSubmit"
         :disabled="!isFormValid"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
         class="px-4"
+        @click="handleSubmit"
       >
         {{ isEditMode ? 'Update' : 'Add' }} Translation
       </VBtn>

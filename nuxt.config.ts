@@ -25,13 +25,19 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: true,
+    timeline: {
+      enabled: true,
+    },
+    vite: {
+      devtoolsServer: true,
+    },
   },
 
   css: [
     '@core/scss/template/index.scss',
     '@styles/styles.scss',
     '@/plugins/iconify/icons.css',
-    '~/middleware/auth.global.js'
+    '~/middleware/auth.global.js',
   ],
 
   components: {
@@ -135,5 +141,12 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
 
-  modules: ['@vueuse/nuxt', '@nuxtjs/device', '@pinia/nuxt'],
+  modules: [
+    '@vueuse/nuxt',
+    '@nuxtjs/device',
+    ['@pinia/nuxt', {
+      autoImports: ['defineStore', 'acceptHMRUpdate'],
+      disableVuex: true,
+    }],
+  ],
 })

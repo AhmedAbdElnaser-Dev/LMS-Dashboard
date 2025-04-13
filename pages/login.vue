@@ -1,73 +1,78 @@
 <script setup>
-import { onMounted } from 'vue';
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue';
-import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant';
-import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png';
-import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png';
-import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustration-dark.png';
-import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png';
-import authV2MaskDark from '@images/pages/misc-mask-dark.png';
-import authV2MaskLight from '@images/pages/misc-mask-light.png';
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
-import { themeConfig } from '@themeConfig';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/useAuthStore'
+import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
+import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
+import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
+import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
+import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustration-dark.png'
+import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png'
+import authV2MaskDark from '@images/pages/misc-mask-dark.png'
+import authV2MaskLight from '@images/pages/misc-mask-light.png'
+import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
+import { themeConfig } from '@themeConfig'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePageMeta({
   layout: 'blank',
-});
+})
 
 const form = ref({
   email: 'ahmed1@gmail.com',
   password: 'Password@123',
   remember: true,
-});
+})
 
-const isPasswordVisible = ref(false);
-const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true);
-const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark);
-const authStore = useAuthStore();
-const loginError = ref(null);
-const router = useRouter();
+const isPasswordVisible = ref(false)
+const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
+const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+const authStore = useAuthStore()
+const loginError = ref(null)
+const router = useRouter()
 
 async function verify() {
   try {
-    console.log('Calling verify...');
-    const result = await authStore.verifyUser();
-    console.log('Verify result:', authStore.user);
+    console.log('Calling verify...')
+
+    const result = await authStore.verifyUser()
+
+    console.log('Verify result:', authStore.user)
     if (result && result.status === 200) {
-      console.log('Verification successful, redirecting to dashboard...');
-      router.push('/dashboard');
+      console.log('Verification successful, redirecting to dashboard...')
+      router.push('/dashboard')
     }
   } catch (error) {
-    console.error('Verify failed:', error);
+    console.error('Verify failed:', error)
   }
 }
 
 onMounted(() => {
-  console.log('Component mounted, triggering verify...');
-  verify();
-});
+  console.log('Component mounted, triggering verify...')
+  verify()
+})
 
 async function handleLogin(e) {
-  e.preventDefault();
+  e.preventDefault()
+
   const formData = {
     email: form.value.email,
     password: form.value.password,
     rememberMe: form.value.remember,
-  };
-  console.log("Form data:", formData);
-  loginError.value = null;
+  }
+
+  console.log("Form data:", formData)
+  loginError.value = null
 
   try {
-    const result = await authStore.login(formData);
-    console.log("Login result:", result);
+    const result = await authStore.login(formData)
+
+    console.log("Login result:", result)
     if (result && result.status === 200) {
-      router.push('/dashboard');
+      router.push('/dashboard')
     }
   } catch (error) {
-    console.error("Login error:", error);
-    loginError.value = error.message || 'Login failed. Please try again.';
+    console.error("Login error:", error)
+    loginError.value = error.message || 'Login failed. Please try again.'
   }
 }
 </script>

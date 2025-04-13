@@ -1,131 +1,67 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  VBtn, VCard, VCardText, VCol, VDataTable, VImg, VRow, VTooltip
-} from 'vuetify/components'
+import GroupDetails from '@/components/courses/GroupDetails.vue'
+import { useGroupsStore } from '@/stores/useGroupsStore'
+import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
+const route = useRoute()
 const router = useRouter()
+const groupId = route.params.id
 
-const bookId = '123'
+const groupsStore = useGroupsStore()
+const { currentGroup, loading } = storeToRefs(groupsStore)
 
-const navigateToEdit = (tab) => {
-  router.push(`/dashboard/books/edit/${bookId}?tab=${tab}`)
+const navigateToEdit = lang => {
+  router.push(`/dashboard/groups/edit/${groupId}?tab=${lang || 'basic'}`)
 }
 
-const book = ref({
-  title: 'Journey to the Stars',
-  image: "https://marketplace.canva.com/EAD7YHrjZYY/1/0/1003w/canva-blue-illustrated-stars-children's-book-cover-haFtaSNXXF4.jpg",
-  pdfUrl: 'c:\\Users\\Omar\\Downloads\\المدينة 1 (2).pdf',
-  createdBy: 'Admin',
-  createdAt: '2024-03-25',
-  updatedBy: 'Editor',
-  updatedAt: '2024-06-01',
-  translations: {
-    arabic: {
-      title: 'رحلة إلى النجوم',
-      createdBy: 'Admin',
-      createdAt: '2024-03-25',
-      updatedBy: 'Editor',
-      updatedAt: '2024-06-01'
-    },
-    english: {
-      title: 'Journey to the Stars',
-      createdBy: 'Admin',
-      createdAt: '2024-03-25',
-      updatedBy: 'Editor',
-      updatedAt: '2024-06-01'
-    },
-    russian: {
-      title: 'Путешествие к звездам',
-      createdBy: 'Admin',
-      createdAt: '2024-03-25',
-      updatedBy: 'Editor',
-      updatedAt: '2024-06-01'
-    }
-  }
+const handleAddStudents = () => {
+  console.log('Add students to group:', groupId)
+}
+
+onMounted(async () => {
+  await groupsStore.getGroupById(groupId)
 })
-
-const headers = [
-  { title: 'Language', key: 'language' },
-  { title: 'Title', key: 'title' },
-  { title: 'Details', key: 'details' },
-  { title: 'Actions', key: 'actions' }
-]
-
-const translationItems = Object.entries(book.value.translations).map(([key, data]) => ({
-  language: key.charAt(0).toUpperCase() + key.slice(1),
-  title: data.title,
-  details: {
-    createdBy: data.createdBy,
-    createdAt: data.createdAt,
-    updatedBy: data.updatedBy,
-    updatedAt: data.updatedAt
-  }
-}))
 </script>
 
 <template>
-  <VCard class="pa-6">
-    <VRow>
-      <VCol cols="12" md="4" class="d-flex flex-column align-center">
-        <VImg
-          :src="book.image"
-          class="rounded-lg shadow-sm mb-4"
-          height="300"
-          width="280"
-          cover
-        />
-        <VBtn color="primary" variant="outlined" :href="book.pdfUrl" target="_blank">
-          Preview PDF
+  <div>
+    <div v-if="loading">
+      Loading...
+    </div>
+
+    <div v-else-if="currentGroup">
+      <div class="d-flex justify-space-between align-center mb-6">
+        <h1 class="text-h4">
+          Group Details
+        </h1>
+        <VBtn
+          color="primary"
+          variant="outlined"
+          prepend-icon="tabler-pencil"
+          @click="navigateToEdit"
+        >
+          Edit Group
         </VBtn>
-      </VCol>
+      </div>
 
-      <VCol cols="12" md="8">
-        <h2 class="text-h5 font-weight-bold mb-2">{{ book.title }}</h2>
-        <p class="text-body-2 text-grey-darken-1">
-          <strong>Created by:</strong> {{ book.createdBy }} at {{ book.createdAt }}
-          <br />
-          <strong>Updated by:</strong> {{ book.updatedBy }} at {{ book.updatedAt }}
-        </p>
+      <GroupDetails
+        :group="currentGroup"
+        @remove-student="() => {}"
+        @edit-translation="navigateToEdit"
+        @add-students="handleAddStudents"
+      />
+    </div>
 
-        <VBtn color="primary" variant="outlined" class="mt-3 mb-4" @click="navigateToEdit('basic')">
-          Edit Basic Info
-        </VBtn>
-
-        <VCardText style="padding: 0;">
-          <h3 class="text-h6 mb-4">Translations</h3>
-          <VDataTable
-            :headers="headers"
-            :items="translationItems"
-            class="elevation-1"
-            disable-pagination
-            hide-default-footer
-          >
-            <template v-slot:item.details="{ item }">
-              <VTooltip location="top">
-                <template v-slot:activator="{ props }">
-                  <span v-bind="props" class="cursor-pointer text-primary">View Details</span>
-                </template>
-                <div>
-                  <p><strong>Created by:</strong> {{ item.details.createdBy }} at {{ item.details.createdAt }}</p>
-                  <p><strong>Updated by:</strong> {{ item.details.updatedBy }} at {{ item.details.updatedAt }}</p>
-                </div>
-              </VTooltip>
-            </template>
-
-            <template v-slot:item.actions="{ item }">
-              <VBtn
-                color="primary"
-                variant="text"
-                @click="navigateToEdit(item.language.toLowerCase())"
-              >
-                Edit {{ item.language }}
-              </VBtn>
-            </template>
-          </VDataTable>
-        </VCardText>
-      </VCol>
-    </VRow>
-  </VCard>
+    <div
+      v-else
+      class="d-flex justify-center align-center pa-4"
+    >
+      <VAlert
+        type="warning"
+        text="Group not found"
+      />
+    </div>
+  </div>
 </template>

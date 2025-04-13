@@ -1,46 +1,42 @@
 <script setup>
-import { useDepartmentsStore } from '@/stores/departmentsStore';
-import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import {
-  VBtn,
-  VCard,
-  VCardActions,
-  VCardText,
-  VTextField
-} from 'vuetify/components';
+import { useDepartmentsStore } from '@/stores/useDepartmentsStore'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const departmentsStore = useDepartmentsStore();
+const route = useRoute()
+const departmentsStore = useDepartmentsStore()
 
 const form = ref({
   name: '',
-});
-const isTouched = ref(false);
+})
+
+const isTouched = ref(false)
 
 const isEditMode = computed(() => {
-  const enTranslation = departmentsStore.department?.translations?.en;
-  return enTranslation && enTranslation.name !== '';
-});
+  const enTranslation = departmentsStore.department?.translations?.en
+  
+  return enTranslation && enTranslation.name !== ''
+})
 
 onMounted(() => {
-  const enTranslation = departmentsStore.department?.translations?.en;
-  form.value.name = enTranslation?.name || '';
-});
+  const enTranslation = departmentsStore.department?.translations?.en
+
+  form.value.name = enTranslation?.name || ''
+})
 
 const isFormValid = computed(() =>
-  form.value.name.trim() !== ''
-);
+  form.value.name.trim() !== '',
+)
 
 const handleSubmit = async () => {
-  isTouched.value = true;
+  isTouched.value = true
   if (isFormValid.value) {
     await departmentsStore.submitTranslation({
       language: 'en',
       name: form.value.name,
-    });
+    })
   }
-};
+}
 </script>
 
 <template>
@@ -63,10 +59,10 @@ const handleSubmit = async () => {
       <VBtn
         color="primary"
         variant="flat"
-        @click="handleSubmit"
         :disabled="!isFormValid"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
         class="px-4"
+        @click="handleSubmit"
       >
         {{ isEditMode ? 'Update' : 'Add' }} Translation
       </VBtn>

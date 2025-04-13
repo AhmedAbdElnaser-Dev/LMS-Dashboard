@@ -1,17 +1,17 @@
 <script setup>
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '~/stores/authStore';
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useRouter } from 'vue-router'
 
-const authStore = useAuthStore();
-const router = useRouter();
+const authStore = useAuthStore()
+const router = useRouter()
 
 onMounted(() => {
   if (authStore.user) {
-    router.push('/dashboard');
+    router.push('/dashboard')
   } else {
-    router.push('/login');
+    router.push('/login')
   }
-});
+})
 </script>
 
 <template>

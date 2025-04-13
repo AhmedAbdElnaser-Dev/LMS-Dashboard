@@ -20,15 +20,15 @@ const form = ref({
 const isTouched = ref(false)
 
 const isEditMode = computed(() => {
-  const arTranslation = departmentsStore.department?.translations?.ar
+  const enTranslation = departmentsStore.department?.translations?.en
   
-  return arTranslation && arTranslation.name !== ''
+  return enTranslation && enTranslation.name !== ''
 })
 
 onMounted(() => {
-  const arTranslation = departmentsStore.department?.translations?.ar
+  const enTranslation = departmentsStore.department?.translations?.en
 
-  form.value.name = arTranslation?.name || ''
+  form.value.name = enTranslation?.name || ''
 })
 
 const isFormValid = computed(() =>
@@ -39,7 +39,7 @@ const handleSubmit = async () => {
   isTouched.value = true
   if (isFormValid.value) {
     await departmentsStore.submitTranslation({
-      language: 'ar',
+      language: 'en',
       name: form.value.name,
     })
   }
@@ -51,7 +51,7 @@ const handleSubmit = async () => {
     <VCardText class="pa-6">
       <VTextField
         v-model="form.name"
-        label="Department Name (Arabic)"
+        label="Department Name (English)"
         variant="outlined"
         dense
         required

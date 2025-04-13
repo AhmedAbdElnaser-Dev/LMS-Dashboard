@@ -25,6 +25,7 @@
     "@tiptap/pm": "2.2.4",
     "@tiptap/starter-kit": "2.2.4",
     "@tiptap/vue-3": "2.2.4",
+    "@vee-validate/zod": "^4.15.0",
     "@vueuse/core": "10.9.0",
     "@vueuse/math": "10.9.0",
     "apexcharts": "3.46.0",
@@ -53,7 +54,8 @@
     "vue3-apexcharts": "1.5.2",
     "vue3-perfect-scrollbar": "1.6.1",
     "vuetify": "3.5.2",
-    "webfontloader": "1.6.28"
+    "webfontloader": "1.6.28",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@antfu/eslint-config-vue": "0.43.1",

@@ -1,3 +1,3 @@
 <template>
-  <BookForm />
+  <CourseForm />
 </template>

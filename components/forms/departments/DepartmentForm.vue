@@ -1,9 +1,14 @@
 <template>
   <VCard class="shadow-lg rounded-lg py-6">
-    <VCardTitle class="text-h4 font-weight-bold text-center mb-6">{{ isEditMode ? "Edit Department" : "Add Department" }}</VCardTitle>
+    <VCardTitle class="text-h4 font-weight-bold text-center mb-6">
+      {{ isEditMode ? "Edit Department" : "Add Department" }}
+    </VCardTitle>
     <VCardText>
       <VRow>
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VTextField
             v-model="form.name"
             label="Department Name"
@@ -15,7 +20,10 @@
             @blur="isTouched.name = true"
           />
         </VCol>
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VSelect
             v-model="form.category"
             label="Category"
@@ -30,7 +38,10 @@
             @blur="isTouched.category = true"
           />
         </VCol>
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VSelect
             v-model="form.supervisor"
             label="Supervisor"
@@ -45,7 +56,10 @@
             @blur="isTouched.supervisor = true"
           />
         </VCol>
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VSelect
             v-model="form.gender"
             label="Gender"
@@ -67,76 +81,78 @@
         :disabled="!isFormValid"
         color="primary"
         variant="flat"
-        @click="handleSubmit"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
-        class="px-4">
-          {{ isEditMode ? "Update" : "Submit" }}
+        class="px-4"
+        @click="handleSubmit"
+      >
+        {{ isEditMode ? "Update" : "Submit" }}
       </VBtn>
     </VCardActions>
   </VCard>
 </template>
 
 <script setup>
-import { useDepartmentsStore } from '@/stores/departmentsStore';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useDepartmentsStore } from '@/stores/useDepartmentsStore'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const departmentsStore = useDepartmentsStore();
-const route = useRoute();
+const departmentsStore = useDepartmentsStore()
+const route = useRoute()
 
 const form = ref({
   name: '',
   category: '',
   supervisor: '',
-  gender: ''
-});
+  gender: '',
+})
 
 const isTouched = ref({
   name: false,
   category: false,
   supervisor: false,
-  gender: false
-});
+  gender: false,
+})
 
-const isEditMode = computed(() => route.path.includes("edit"));
+const isEditMode = computed(() => route.path.includes("edit"))
 
 onMounted(async () => {
-  await departmentsStore.fetchUsersAndCategories();
-});
+  await departmentsStore.fetchUsersAndCategories()
+})
 
-watch(() => departmentsStore.department, (newDepartment) => {
+watch(() => departmentsStore.department, newDepartment => {
   if (newDepartment && route.path.includes("edit")) {
     form.value = {
       name: newDepartment.name || '',
       category: newDepartment.categoryName || '',
       supervisor: newDepartment.supervisor.id || '',
-      gender: newDepartment.gender || ''
-    };
+      gender: newDepartment.gender || '',
+    }
   } else {
-    form.value = { name: '', category: '', supervisor: '', gender: '' };
+    form.value = { name: '', category: '', supervisor: '', gender: '' }
   }
-}, { immediate: true });
+}, { immediate: true })
 
-const categories = computed(() => departmentsStore.categories.map(c => ({ title: c.name, value: c.id })));
-const supervisors = computed(() => departmentsStore.users.map(u => ({ title: `${u.fullName} (${u.role})`, value: u.id })));
+const categories = computed(() => departmentsStore.categories.map(c => ({ title: c.name, value: c.id })))
+const supervisors = computed(() => departmentsStore.users.map(u => ({ title: `${u.fullName} (${u.role})`, value: u.id })))
+
 const genders = computed(() => [
   { title: "Male", value: "Male" },
   { title: "Female", value: "Female" },
-  { title: "Kids", value: "Kids" }
-]);
+  { title: "Kids", value: "Kids" },
+])
 
 const isFormValid = computed(() =>
   form.value.name.trim() !== '' &&
   form.value.category.trim() !== '' &&
   form.value.supervisor.trim() !== '' &&
-  form.value.gender.trim() !== ''
-);
+  form.value.gender.trim() !== '',
+)
 
 const handleSubmit = () => {
-  isTouched.value.name = true;
-  isTouched.value.category = true;
-  isTouched.value.supervisor = true;
-  isTouched.value.gender = true;
+  isTouched.value.name = true
+  isTouched.value.category = true
+  isTouched.value.supervisor = true
+  isTouched.value.gender = true
 
   if (isFormValid.value) {
     if (isEditMode.value) {
@@ -145,16 +161,16 @@ const handleSubmit = () => {
         name: form.value.name,
         categoryId: form.value.category,
         supervisorId: form.value.supervisor,
-        gender: form.value.gender
-      });
+        gender: form.value.gender,
+      })
     } else {
       departmentsStore.addDepartment({
         name: form.value.name,
         categoryId: form.value.category,
         supervisorId: form.value.supervisor,
-        gender: form.value.gender
-      });
+        gender: form.value.gender,
+      })
     }
   }
-};
+}
 </script>

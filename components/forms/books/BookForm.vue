@@ -1,79 +1,79 @@
 <script setup>
-import { useBooksStore } from '@/stores/bookStore';
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useBooksStore } from '@/stores/useBookStore'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   VBtn, VCard, VCardActions, VCardText, VCardTitle,
-  VCol, VFileInput, VRow, VTextField
-} from 'vuetify/components';
+  VCol, VFileInput, VRow, VTextField,
+} from 'vuetify/components'
 
-const booksStore = useBooksStore();
-const route = useRoute();
+const booksStore = useBooksStore()
+const route = useRoute()
 
 // Check if the current route includes "edit"
-const isEditMode = computed(() => route.path.includes('edit'));
+const isEditMode = computed(() => route.path.includes('edit'))
 
 const form = ref({
   name: '',
   pdf: null,
-  pic: null
-});
+  pic: null,
+})
 
 const isTouched = ref({
   name: false,
   pdf: false,
-  pic: false
-});
+  pic: false,
+})
 
 // Watch selectedBook only when in edit mode
-watch(() => isEditMode.value, (editing) => {
+watch(() => isEditMode.value, editing => {
   if (editing && booksStore.selectedBook) {
     form.value = {
       name: booksStore.selectedBook.name || '',
       pdf: null,
-      pic: null
-    };
+      pic: null,
+    }
   }
-}, { immediate: true });
+}, { immediate: true })
 
 const isFormValid = computed(() => {
   return form.value.name.trim() !== '' &&
          form.value.pdf instanceof File &&
-         form.value.pic instanceof File;
-});
+         form.value.pic instanceof File
+})
 
 const handleFileChange = (event, type) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
   if (type === 'pdf' && file.type !== 'application/pdf') {
-    form.value.pdf = null;
-    alert('Please select a valid PDF file.');
+    form.value.pdf = null
+    alert('Please select a valid PDF file.')
   } else if (type === 'pic' && !file.type.startsWith('image/')) {
-    form.value.pic = null;
-    alert('Please select a valid image file.');
+    form.value.pic = null
+    alert('Please select a valid image file.')
   } else {
-    form.value[type] = file;
+    form.value[type] = file
   }
-};
+}
 
 const handleSubmit = () => {
-  isTouched.value.name = true;
-  isTouched.value.pdf = true;
-  isTouched.value.pic = true;
+  isTouched.value.name = true
+  isTouched.value.pdf = true
+  isTouched.value.pic = true
 
   if (isFormValid.value) {
     if (isEditMode.value) {
-      console.log('Updating book:', form.value);
+      console.log('Updating book:', form.value)
     } else {
       booksStore.addBook({
         name: form.value.name,
         pdfFile: form.value.pdf,
-        picFile: form.value.pic
-      });
+        picFile: form.value.pic,
+      })
     }
   }
-};
+}
 </script>
 
 <template>
@@ -84,7 +84,10 @@ const handleSubmit = () => {
 
     <VCardText class="pa-6">
       <VRow>
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VTextField
             v-model="form.name"
             label="Book Name"
@@ -98,7 +101,10 @@ const handleSubmit = () => {
           />
         </VCol>
 
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VFileInput
             label="Book PDF"
             variant="outlined"
@@ -112,7 +118,10 @@ const handleSubmit = () => {
           />
         </VCol>
 
-        <VCol cols="12" md="6">
+        <VCol
+          cols="12"
+          md="6"
+        >
           <VFileInput
             label="Book Picture"
             variant="outlined"
@@ -132,10 +141,10 @@ const handleSubmit = () => {
       <VBtn
         color="primary"
         variant="flat"
-        @click="handleSubmit"
         :disabled="!isFormValid"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
         class="px-4"
+        @click="handleSubmit"
       >
         {{ isEditMode ? 'Update' : 'Add' }} Book
       </VBtn>
