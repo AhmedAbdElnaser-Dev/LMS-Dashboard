@@ -1,4 +1,3 @@
-import { api } from '#imports'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -59,7 +58,6 @@ export const useCoursesStore = defineStore('coursesStore', () => {
       const response = await api().get(`/courses/${id}/full-details`)
 
       course.value = response.data
-      console.log('Fetched course:', course.value)
     } catch (err) {
       error.value = err
       console.error(`Failed to fetch course by id ${id}:`, err)
@@ -72,11 +70,29 @@ export const useCoursesStore = defineStore('coursesStore', () => {
     loading.value = true
     error.value = null
     try {
-      await api().post('/courses/add', courseData)
-      await fetchFormData()
+      const res = await api().post('/courses/add', courseData)
+
+      if (res.status != 200) {
+        error.value = "Failed to add Course"
+
+        return { success: false, message: "Failed to add Course" }
+      }
+
+      console.log(courses.value.length)
+
+      if (courses.value.length !== 0) {
+        courses.value.unshift(res.data.course)
+        console.log(courses.value)
+        console.log(res)
+        console.log(res.data.course)
+      }
+
+      return { success: true }
     } catch (err) {
       error.value = err
       console.error('Failed to add course:', err)
+
+      return { success: false, message: "Failed to add Course" }
     } finally {
       loading.value = false
     }
@@ -106,7 +122,20 @@ export const useCoursesStore = defineStore('coursesStore', () => {
     loading.value = true
     error.value = null
     try {
-      await api().put(`/courses/${id}/edit`, courseData)
+      const res = await api().put(`/courses/${id}/edit`, courseData)
+
+      if (res.status === 200 || res.status === 204) {
+        courses.value = courses.value.map(course =>
+          course.id === id ? { ...course, ...courseData } : course,
+        )
+        if (course.value && course.value.id === id) {
+          course.value = { ...course.value, ...courseData }
+        }
+
+        return { success: true }
+      } else {
+        return { success: false, message: "Failed to update Course" }
+      }
     } catch (err) {
       error.value = err
       console.error(`Failed to update course with id ${id}:`, err)
@@ -125,7 +154,7 @@ export const useCoursesStore = defineStore('coursesStore', () => {
       if (course.value && course.value.id === translationData.courseId) {
         course.value.translations = {
           ...course.value.translations,
-          [translationData.language]: newTranslation,
+          [translationData.language]: { ...newTranslation, id: response.data.translationId },
         }
       }
 
@@ -140,11 +169,12 @@ export const useCoursesStore = defineStore('coursesStore', () => {
         }
       }
 
-      return newTranslation
+      return { success: true, translation: newTranslation }
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to add translation'
       console.error('Failed to add translation:', err)
-      throw error.value
+
+      return { success: false, message: 'Failed to add translation' }
     } finally {
       loading.value = false
     }
@@ -154,7 +184,7 @@ export const useCoursesStore = defineStore('coursesStore', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await api().put('/api/courses/translations/edit', translationData)
+      const response = await api().put('/courses/translations/edit', translationData)
       const updatedTranslation = response.data
 
       if (course.value) {
@@ -172,17 +202,16 @@ export const useCoursesStore = defineStore('coursesStore', () => {
           updatedTranslation
       }
 
-      return updatedTranslation
+      return { success: true }
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to edit translation'
-      console.error('Failed to edit translation:', err)
-      throw error.value
+
+      return { success: false }
     } finally {
       loading.value = false
     }
   }
 
-  // Return state and actions
   return {
     courses,
     course,

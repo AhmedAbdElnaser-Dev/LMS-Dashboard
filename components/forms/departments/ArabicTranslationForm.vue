@@ -2,13 +2,6 @@
 import { useDepartmentsStore } from '@/stores/useDepartmentsStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  VBtn,
-  VCard,
-  VCardActions,
-  VCardText,
-  VTextField,
-} from 'vuetify/components'
 
 const route = useRoute()
 const departmentsStore = useDepartmentsStore()

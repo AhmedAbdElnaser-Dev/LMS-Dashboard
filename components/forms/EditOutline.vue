@@ -1,13 +1,12 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { VList, VListItem, VWindow, VWindowItem } from 'vuetify/components'
 
 const props = defineProps({
   basicInfoForm: { type: Object, default: null },
   arabicForm: { type: Object, default: null },
   englishForm: { type: Object, default: null },
-  russianForm: { type: Object, default: null }
+  russianForm: { type: Object, default: null },
 })
 
 const route = useRoute()
@@ -18,7 +17,7 @@ const tabs = computed(() => [
   { key: 'basic', title: 'Basic Info', form: props.basicInfoForm },
   { key: 'ar', title: 'Arabic Translation', form: props.arabicForm },
   { key: 'en', title: 'English Translation', form: props.englishForm },
-  { key: 'ru', title: 'Russian Translation', form: props.russianForm }
+  { key: 'ru', title: 'Russian Translation', form: props.russianForm },
 ])
 
 const activeTab = ref(0)
@@ -26,13 +25,14 @@ const activeTab = ref(0)
 const updateActiveTab = () => {
   const tabKey = route.query.tab || 'basic'
   const foundIndex = tabs.value.findIndex(tab => tab.key === tabKey && tab.form)
+
   activeTab.value = foundIndex !== -1 ? foundIndex : 0
 }
 
 watch(() => route.query.tab, updateActiveTab, { immediate: true })
 
 // Handle tab click and update query parameter
-const changeTab = (index) => {
+const changeTab = index => {
   if (!tabs.value[index].form) return
   activeTab.value = index
   router.push({ query: { tab: tabs.value[index].key } })
@@ -47,18 +47,26 @@ const changeTab = (index) => {
         v-for="(tab, index) in tabs"
         :key="index"
         :disabled="!tab.form"
+        :active="activeTab === index"
         @click="changeTab(index)"
-        :class="{ 'active-tab': activeTab === index, 'disabled-tab': !tab.form }"
       >
         {{ tab.title }}
       </VListItem>
     </VList>
 
-    <!-- Tab Content using VWindow -->
     <div class="tab-content">
-      <VWindow v-model="activeTab">
-        <VWindowItem v-for="(tab, index) in tabs" :key="index">
-          <component v-if="tab.form" :is="tab.form" />
+      <VWindow
+        :model-value="activeTab"
+        @update:model-value="val => activeTab.value = val"
+      >
+        <VWindowItem
+          v-for="(tab, index) in tabs"
+          :key="index"
+        >
+          <component
+            :is="tab.form"
+            v-if="tab.form"
+          />
         </VWindowItem>
       </VWindow>
     </div>
@@ -78,9 +86,10 @@ const changeTab = (index) => {
   transition: background 0.3s, color 0.3s;
 }
 
-.sidebar-tabs .v-list-item.active-tab {
-  background-color: var(--v-theme-primary);
-  color: white;
+/* Vuetify's active item class */
+.sidebar-tabs .v-list-item.v-list-item--active {
+  backdrop-filter: blur(12px);
+  color: var(--v-theme-primary);
   font-weight: bold;
 }
 

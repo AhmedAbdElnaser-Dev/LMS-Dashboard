@@ -1,10 +1,10 @@
 <script setup>
-import { useDepartmentsStore } from '@/stores/useDepartmentsStore'
+import { useUnitsStore } from '@/stores/useUnitsStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const departmentsStore = useDepartmentsStore()
+const unitsStore = useUnitsStore()
 
 const form = ref({
   name: '',
@@ -13,28 +13,35 @@ const form = ref({
 const isTouched = ref(false)
 
 const isEditMode = computed(() => {
-  const ruTranslation = departmentsStore.department?.translations?.ru
-  
-  return ruTranslation && ruTranslation.name !== ''
+  const arTranslation = unitsStore.unit?.translations?.ar
+
+  return arTranslation && arTranslation.name !== ''
 })
 
-onMounted(() => {
-  const ruTranslation = departmentsStore.department?.translations?.ru
+onMounted(async () => {
+  if (!unitsStore.unit && route.params.id) {
+    await unitsStore.getUnit(route.params.id)
+  }
 
-  form.value.name = ruTranslation?.name || ''
+  const arTranslation = unitsStore.unit?.translations?.ar
+
+  form.value.name = arTranslation?.name || ''
 })
 
-const isFormValid = computed(() =>
-  form.value.name.trim() !== '',
-)
+const isFormValid = computed(() => form.value.name.trim() !== '')
 
 const handleSubmit = async () => {
   isTouched.value = true
+
   if (isFormValid.value) {
-    await departmentsStore.submitTranslation({
-      language: 'ru',
-      name: form.value.name,
-    })
+    try {
+      await unitsStore.submitTranslation({
+        language: 'ar',
+        name: form.value.name,
+      })
+    } catch (error) {
+      console.error('Submit failed:', error)
+    }
   }
 }
 </script>
@@ -44,7 +51,7 @@ const handleSubmit = async () => {
     <VCardText class="pa-6">
       <VTextField
         v-model="form.name"
-        label="Department Name (Russian)"
+        label="Unit Name (Arabic)"
         variant="outlined"
         dense
         required

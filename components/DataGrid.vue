@@ -1,88 +1,94 @@
 <script setup>
-import { computed, ref } from 'vue';
-import ImagePreview from '~/components/ImagePreview.vue';
+import { computed, ref } from 'vue'
+import ImagePreview from '~/components/ImagePreview.vue'
 
 const props = defineProps({
   headers: {
     type: Array,
-    required: true
+    required: true,
   },
   items: {
     type: Array,
-    required: true
+    required: true,
   },
   name: {
     type: String,
-    required: true
-  }
-});
+    required: true,
+  },
+  addRoute: {
+    type: String,
+    required: true,
+  },
+})
 
-const emit = defineEmits(['delete']);
+const emit = defineEmits(['delete'])
 
-const searchQuery = ref('');
-const selectedRows = ref([]);
-const itemsPerPage = ref(5);
-const page = ref(1);
-const sortBy = ref();
-const orderBy = ref();
+const searchQuery = ref('')
+const selectedRows = ref([])
+const itemsPerPage = ref(5)
+const page = ref(1)
+const sortBy = ref()
+const orderBy = ref()
 
-const showDeleteModal = ref(false);
-const itemToDelete = ref(null);
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
 
 const filteredItems = computed(() => {
   return props.items.filter(item => {
     return Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchQuery.value.toLowerCase())
-    );
-  });
-});
+      String(value).toLowerCase().includes(searchQuery.value.toLowerCase()),
+    )
+  })
+})
 
-const totalItems = computed(() => filteredItems.value.length);
+const totalItems = computed(() => filteredItems.value.length)
 
 const paginatedItems = computed(() => {
-  const start = (page.value - 1) * itemsPerPage.value;
-  const end = start + itemsPerPage.value;
+  const start = (page.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+
   return itemsPerPage.value === -1
     ? filteredItems.value
-    : filteredItems.value.slice(start, end);
-});
+    : filteredItems.value.slice(start, end)
+})
 
 const totalPages = computed(() => {
   return itemsPerPage.value === -1
     ? 1
-    : Math.ceil(totalItems.value / itemsPerPage.value);
-});
+    : Math.ceil(totalItems.value / itemsPerPage.value)
+})
 
 const updateOptions = options => {
-  page.value = options.page;
-  sortBy.value = options.sortBy[0]?.key;
-  orderBy.value = options.sortBy[0]?.order;
-};
+  page.value = options.page
+  sortBy.value = options.sortBy[0]?.key
+  orderBy.value = options.sortBy[0]?.order
+}
 
-const initiateDelete = (item) => {
-  itemToDelete.value = item;
-  showDeleteModal.value = true;
-};
+const initiateDelete = item => {
+  itemToDelete.value = item
+  showDeleteModal.value = true
+}
 
 const confirmDelete = () => {
   if (itemToDelete.value) {
-    emit('delete', itemToDelete.value.id);
-    showDeleteModal.value = false;
-    itemToDelete.value = null;
+    emit('delete', itemToDelete.value.id)
+    showDeleteModal.value = false
+    itemToDelete.value = null
   }
-};
+}
 
 const cancelDelete = () => {
-  showDeleteModal.value = false;
-  itemToDelete.value = null;
-};
+  showDeleteModal.value = false
+  itemToDelete.value = null
+}
 
-const hasActions = computed(() => props.headers.some(header => header.key === 'actions'));
+const hasActions = computed(() => props.headers.some(header => header.key === 'actions'))
 
-const isImageColumn = (key) => {
-  const imageKeys = ['pic', 'img', 'image', 'photo', 'thumbnail'];
-  return imageKeys.includes(key.toLowerCase());
-};
+const isImageColumn = key => {
+  const imageKeys = ['pic', 'img', 'image', 'photo', 'thumbnail']
+
+  return imageKeys.includes(key.toLowerCase())
+}
 </script>
 
 <template>
@@ -90,7 +96,7 @@ const isImageColumn = (key) => {
     <VCardText>
       <div class="d-flex justify-space-between flex-wrap gap-4">
         <div class="d-flex gap-4 align-center">
-          <NuxtLink :to="`/dashboard/${props.name}/add`">
+          <NuxtLink :to="addRoute || `/dashboard/${props.name}/add`">
             <VBtn prepend-icon="tabler-plus">
               Add {{ props.name.charAt(0).toUpperCase() + props.name.slice(1) }}
             </VBtn>
@@ -120,14 +126,26 @@ const isImageColumn = (key) => {
       :page="page"
       hide-default-footer
     >
-      <template v-for="header in props.headers" #[`item.${header.key}`]="{ item }">
-        <slot :name="`item.${header.key}`" :item="item">
-          <ImagePreview v-if="isImageColumn(header.key)" :src="item[header.key]" />
+      <template
+        v-for="header in props.headers"
+        #[`item.${header.key}`]="{ item }"
+      >
+        <slot
+          :name="`item.${header.key}`"
+          :item="item"
+        >
+          <ImagePreview
+            v-if="isImageColumn(header.key)"
+            :src="item[header.key]"
+          />
           <span v-else>{{ item[header.key] }}</span>
         </slot>
       </template>
 
-      <template v-if="hasActions" #item.actions="{ item }">
+      <template
+        v-if="hasActions"
+        #item.actions="{ item }"
+      >
         <VBtn
           icon="tabler-trash"
           variant="text"
@@ -157,10 +175,10 @@ const isImageColumn = (key) => {
             <VSelect
               :model-value="itemsPerPage"
               :items="[5, 10, 25, 50, 100, -1]"
-              @update:model-value="itemsPerPage = parseInt($event, 10); page = 1"
               density="compact"
               variant="outlined"
               style="inline-size: 100px;"
+              @update:model-value="itemsPerPage = parseInt($event, 10); page = 1"
             />
           </div>
           <VPagination
@@ -172,7 +190,10 @@ const isImageColumn = (key) => {
       </template>
     </VDataTable>
 
-    <VDialog v-model="showDeleteModal" max-width="500">
+    <VDialog
+      v-model="showDeleteModal"
+      max-width="500"
+    >
       <VCard>
         <VCardTitle>Confirm Deletion</VCardTitle>
         <VCardText>
@@ -180,8 +201,18 @@ const isImageColumn = (key) => {
         </VCardText>
         <VCardActions>
           <VSpacer />
-          <VBtn color="secondary" @click="cancelDelete">Cancel</VBtn>
-          <VBtn color="error" @click="confirmDelete">Yes, Delete</VBtn>
+          <VBtn
+            color="secondary"
+            @click="cancelDelete"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="error"
+            @click="confirmDelete"
+          >
+            Yes, Delete
+          </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

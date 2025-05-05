@@ -10,6 +10,8 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  addRoute: { type: String,
+    required: true },
 })
 
 const emit = defineEmits(['close', 'submit'])

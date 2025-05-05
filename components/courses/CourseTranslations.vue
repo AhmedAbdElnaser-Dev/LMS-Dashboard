@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import TranslationsTable from '@/components/global/TranslationsTable.vue'
 
 const props = defineProps({
   translations: {
@@ -8,7 +9,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['navigate-to-edit', 'open-modal'])
+const emit = defineEmits(['navigateToEdit', 'openModal'])
 
 const translationHeaders = [
   { title: 'Language', key: 'language' },
@@ -23,99 +24,104 @@ const translationHeaders = [
   { title: 'Actions', key: 'actions' },
 ]
 
+const langMap = {
+  en: 'English',
+  ar: 'Arabic',
+  ru: 'Russian',
+}
+
+const transform = (item) => ({
+  ...item,
+  name: item.name ?? 'Not Found',
+  title: item.title ?? 'Not Found',
+  description: item.description ?? 'Not Found',
+  about: item.about ?? 'Not Found',
+  prerequisites: item.prerequisites ?? [],
+  learningOutcomes: item.learningOutcomes ?? [],
+})
+
+const actions = [
+  {
+    label: 'Edit',
+    icon: 'tabler-pencil',
+    color: 'primary',
+    variant: 'outlined',
+    onClick: (item) => emit('navigateToEdit', item.langCode),
+  },
+]
+
+const customSlots = {
+  'item.demoUrl': true,
+  'item.urlPic': true,
+  'item.prerequisites': true,
+  'item.outcomes': true,
+}
+
 const translationItems = computed(() => {
   if (!props.translations) return []
   
   return Object.entries(props.translations).map(([lang, data]) => ({
-    language: getLanguageName(lang),
+    language: langMap[lang],
     langCode: lang,
-    name: data.name ?? 'Not Found',
-    title: data.title ?? 'Not Found',
-    description: data.description ?? 'Not Found',
-    about: data.about ?? 'Not Found',
-    demoUrl: data.demoUrl,
-    urlPic: data.urlPic,
-    prerequisites: data.prerequisites ?? [],
-    learningOutcomes: data.learningOutcomes ?? [],
+    ...data,
   }))
 })
-
-const getLanguageName = code => {
-  switch (code) {
-  case 'en': return 'English'
-  case 'ar': return 'Arabic'
-  case 'ru': return 'Russian'
-  default: return 'Unknown Language'
-  }
-}
 </script>
 
 <template>
-  <div>
-    <VDataTable
-      :headers="translationHeaders"
-      :items="translationItems"
-      :items-per-page="5"
-      class="bg-transparent"
-    >
-      <template #item.demoUrl="{ item }">
-        <VBtn
-          v-if="item.demoUrl"
-          color="primary"
-          small
-          @click="emit('open-modal', item.demoUrl, 'video')"
-        >
-          View Demo
-        </VBtn>
-        <span v-else>Not Found</span>
-      </template>
-
-      <template #item.urlPic="{ item }">
-        <VBtn
-          v-if="item.urlPic"
-          color="primary"
-          small
-          @click="emit('open-modal', item.urlPic, 'image')"
-        >
-          View Picture
-        </VBtn>
-        <span v-else>Not Found</span>
-      </template>
-
-      <template #item.prerequisites="{ item }">
-        <VBtn
-          v-if="item.prerequisites.length"
-          color="primary"
-          small
-          @click="emit('open-modal', item.prerequisites, 'prerequisites')"
-        >
-          View Prerequisites
-        </VBtn>
-        <span v-else>Not Found</span>
-      </template>
-
-      <template #item.outcomes="{ item }">
-        <VBtn
-          v-if="item.learningOutcomes.length"
-          color="primary"
-          small
-          @click="emit('open-modal', item.learningOutcomes, 'outcomes')"
-        >
-          View Outcomes
-        </VBtn>
-        <span v-else>Not Found</span>
-      </template>
-
-      <template #item.actions="{ item }">
-        <VBtn
-          color="primary"
-          small
-          variant="outlined"
-          @click="emit('navigate-to-edit', item.langCode)"
-        >
-          Edit
-        </VBtn>
-      </template>
-    </VDataTable>
-  </div>
+  <TranslationsTable
+    :headers="translationHeaders"
+    :items="translationItems"
+    :lang-map="langMap"
+    :transform="transform"
+    :actions="actions"
+    :custom-slots="customSlots"
+    @navigateToEdit="lang => emit('navigateToEdit', lang)"
+    @openModal="(...args) => emit('openModal', ...args)"
+  >
+    <template #item.demoUrl="{ item }">
+      <VBtn
+        v-if="item.demoUrl"
+        color="primary"
+        small
+        @click="$emit('openModal', item.demoUrl, 'video')"
+      >
+        View Demo
+      </VBtn>
+      <span v-else>Not Found</span>
+    </template>
+    <template #item.urlPic="{ item }">
+      <VBtn
+        v-if="item.urlPic"
+        color="primary"
+        small
+        @click="$emit('openModal', item.urlPic, 'image')"
+      >
+        View Picture
+      </VBtn>
+      <span v-else>Not Found</span>
+    </template>
+    <template #item.prerequisites="{ item }">
+      <VBtn
+        v-if="item.prerequisites.length"
+        color="primary"
+        small
+        @click="$emit('openModal', item.prerequisites, 'prerequisites')"
+      >
+        View Prerequisites
+      </VBtn>
+      <span v-else>Not Found</span>
+    </template>
+    <template #item.outcomes="{ item }">
+      <VBtn
+        v-if="item.learningOutcomes.length"
+        color="primary"
+        small
+        @click="$emit('openModal', item.learningOutcomes, 'outcomes')"
+      >
+        View Outcomes
+      </VBtn>
+      <span v-else>Not Found</span>
+    </template>
+  </TranslationsTable>
 </template>

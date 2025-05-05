@@ -1,7 +1,10 @@
 <template>
-  <VCard class="shadow-lg rounded-lg py-6">
+  <VCard
+    v-if="!isLoading"
+    class="shadow-lg rounded-lg py-6"
+  >
     <VCardTitle class="text-h4 font-weight-bold text-center mb-6">
-      Add Group
+      Edit Group
     </VCardTitle>
 
     <VCardText>
@@ -88,29 +91,38 @@
             color="white"
           />
         </template>
-        Add Group
+        Update Group
       </VBtn>
     </VCardActions>
+  </VCard>
+
+  <VCard v-else>
+    <VCardText>Loading...</VCardText>
   </VCard>
 </template>
 
 <script setup>
 import { useGroupsStore } from '@/stores/useGroupsStore'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const groupsStore = useGroupsStore()
+const { currentGroup } = storeToRefs(groupsStore)
 const route = useRoute()
+const router = useRouter()
 
-const courseId = route.params.id || ''
+const groupId = route.params.id || null
 const instructors = ref([])
+const isLoading = ref(true)
 const error = ref(null)
 
 const form = ref({
+  groupId: groupId,
   name: '',
   maxStudents: 5,
   instructorId: '',
-  courseId: courseId,
+  courseId: '',
 })
 
 const isTouched = ref({
@@ -128,6 +140,21 @@ const isFormValid = computed(() =>
   form.value.instructorId.trim() !== '',
 )
 
+watch(
+  () => currentGroup.value,
+  group => {
+    if (group && isLoading.value) {
+      // only initialize once when loading
+      form.value.groupId = group.id || groupId
+      form.value.name = group.name || ''
+      form.value.maxStudents = group.maxStudents || 5
+      form.value.instructorId = group.instructor?.id || ''
+      form.value.courseId = group.courseId || ''
+    }
+  },
+  { immediate: true },
+)
+
 const handleSubmit = async () => {
   isTouched.value.name = true
   isTouched.value.maxStudents = true
@@ -136,29 +163,20 @@ const handleSubmit = async () => {
   if (!isFormValid.value) return
 
   isSubmitting.value = true
+  error.value = null
+
   try {
-    const res = await groupsStore.addGroup({
+    await groupsStore.updateGroup({
+      groupId: form.value.groupId,
       name: form.value.name,
       instructorId: form.value.instructorId,
       maxStudents: form.value.maxStudents,
-      courseId: courseId,
     })
 
-    if (res.success) {
-      form.value = {
-        name: '',
-        maxStudents: 5,
-        instructorId: '',
-        courseId: courseId,
-      }
-      isTouched.value = {
-        name: false,
-        maxStudents: false,
-        instructorId: false,
-      }
-    }
+    // optionally: show success message or navigate away
   } catch (err) {
-    console.error('Error adding group:', err)
+    console.error('Error updating group:', err)
+    error.value = err.message || 'Failed to update group'
   } finally {
     isSubmitting.value = false
   }
@@ -166,11 +184,19 @@ const handleSubmit = async () => {
 
 onMounted(async () => {
   try {
+    if (!groupId) {
+      error.value = 'Invalid group ID'
+      console.error('No group ID provided')
+
+      return
+    }
     instructors.value = await groupsStore.getInstructors()
     console.log('instructors:', instructors.value)
   } catch (err) {
     error.value = err.message || 'Failed to initialize form'
     console.error('Error in onMounted:', err)
+  } finally {
+    isLoading.value = false
   }
 })
 </script>

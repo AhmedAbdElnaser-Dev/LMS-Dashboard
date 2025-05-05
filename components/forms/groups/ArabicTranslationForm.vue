@@ -1,42 +1,73 @@
 <script setup>
-import { useDepartmentsStore } from '@/stores/useDepartmentsStore'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useGroupsStore } from '@/stores/useGroupsStore'
+import { computed, ref } from 'vue'
 
-const route = useRoute()
-const departmentsStore = useDepartmentsStore()
+const groupsStore = useGroupsStore()
 
 const form = ref({
   name: '',
+  description: '',
 })
 
-const isTouched = ref(false)
+const isTouched = ref({
+  name: false,
+  description: false,
+})
 
 const isEditMode = computed(() => {
-  const arTranslation = departmentsStore.department?.translations?.ar
+  const arTranslation = groupsStore.currentGroup?.translations?.find(
+    t => t.language === 'ar',
+  )
   
-  return arTranslation && arTranslation.name !== ''
+  return !!arTranslation
 })
 
-onMounted(() => {
-  const arTranslation = departmentsStore.department?.translations?.ar
-
-  form.value.name = arTranslation?.name || ''
-})
-
-const isFormValid = computed(() =>
-  form.value.name.trim() !== '',
+const isFormValid = computed(() => 
+  form.value.name.trim() !== '' && 
+  form.value.description.trim() !== '',
 )
 
 const handleSubmit = async () => {
-  isTouched.value = true
-  if (isFormValid.value) {
-    await departmentsStore.submitTranslation({
+  isTouched.value.name = true
+  isTouched.value.description = true
+
+  if (!isFormValid.value) return
+
+  try {
+    const groupId = groupsStore.currentGroup?.id
+    if (!groupId) {
+      console.error('No group selected')
+      
+      return
+    }
+
+    await groupsStore.submitTranslation({
+      groupId,
       language: 'ar',
       name: form.value.name,
+      description: form.value.description,
     })
+  } catch (err) {
+    console.error('Error submitting translation:', err)
   }
 }
+
+const initializeForm = () => {
+  const arTranslation = groupsStore.currentGroup?.translations?.find(
+    t => t.language === 'ar',
+  )
+
+  form.value.name = arTranslation?.name || ''
+  form.value.description = arTranslation?.description || ''
+}
+
+// Initialize form immediately and watch for changes to currentGroup
+initializeForm()
+watch(
+  () => groupsStore.currentGroup,
+  () => initializeForm(),
+  { deep: true },
+)
 </script>
 
 <template>
@@ -44,14 +75,25 @@ const handleSubmit = async () => {
     <VCardText class="pa-6">
       <VTextField
         v-model="form.name"
-        label="Department Name (Arabic)"
+        label="Group Name (Arabic)"
         variant="outlined"
         dense
         required
         class="mb-4"
-        :error="isTouched && !form.name.trim()"
-        :error-messages="isTouched && !form.name.trim() ? ['This field is required'] : []"
-        @blur="isTouched = true"
+        :error="isTouched.name && !form.name.trim()"
+        :error-messages="isTouched.name && !form.name.trim() ? ['This field is required'] : []"
+        @blur="isTouched.name = true"
+      />
+      <VTextarea
+        v-model="form.description"
+        label="Group Description (Arabic)"
+        variant="outlined"
+        dense
+        required
+        class="mb-4"
+        :error="isTouched.description && !form.description.trim()"
+        :error-messages="isTouched.description && !form.description.trim() ? ['This field is required'] : []"
+        @blur="isTouched.description = true"
       />
     </VCardText>
 

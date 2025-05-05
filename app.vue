@@ -1,4 +1,5 @@
 <script setup>
+import GlobalSnackbar from '@/components/GlobalSnackbar.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { useAuthStore } from '@/stores/useAuthStore.js'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
@@ -27,12 +28,12 @@ if (isMobile) configStore.appContentLayoutNav = 'vertical'
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
       <NuxtLayout>
         <NuxtPage />
+        <GlobalSnackbar />
       </NuxtLayout>
       <ScrollToTop />
     </VApp>
   </VLocaleProvider>
 
-  <!-- Show loading overlay only when authStore.loading is true -->
   <LoadingOverlay
     v-if="loading"
     :opacity="50"

@@ -15,6 +15,8 @@ const props = defineProps({
 const emit = defineEmits(['delete', 'view', 'add'])
 
 const searchGroups = ref('')
+const dialog = ref(false) 
+const groupToDelete = ref(null)
 
 const groupHeaders = [
   { title: 'Name', key: 'name', sortable: true },
@@ -22,6 +24,24 @@ const groupHeaders = [
   { title: 'Current Students', key: 'currentStudents', sortable: true },
   { title: 'Actions', key: 'actions', align: 'end' },
 ]
+
+const openDeleteDialog = group => {
+  groupToDelete.value = group
+  dialog.value = true
+}
+
+const confirmDelete = () => {
+  if (groupToDelete.value) {
+    emit('delete', groupToDelete.value.id)
+  }
+  dialog.value = false
+  groupToDelete.value = null
+}
+
+const cancelDelete = () => {
+  dialog.value = false
+  groupToDelete.value = null
+}
 </script>
 
 <template>
@@ -97,7 +117,7 @@ const groupHeaders = [
                 variant="text"
                 color="error"
                 size="small"
-                @click="$emit('delete', group.id)"
+                @click="openDeleteDialog(group)"
               >
                 <VIcon>tabler-trash</VIcon>
               </VBtn>
@@ -115,5 +135,39 @@ const groupHeaders = [
         </tbody>
       </VTable>
     </VCardText>
+
+    <!-- Confirmation Dialog -->
+    <VDialog
+      v-model="dialog"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="text-h6">
+          Confirm Deletion
+        </VCardTitle>
+        <VCardText>
+          Are you sure you want to delete the group
+          <strong>{{ groupToDelete?.name || '' }}</strong>?
+          This action cannot be undone.
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="secondary"
+            variant="text"
+            @click="cancelDelete"
+          >
+            Cancel
+          </VBtn>
+          <VBtn
+            color="error"
+            variant="text"
+            @click="confirmDelete"
+          >
+            Delete
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </VCard>
 </template>

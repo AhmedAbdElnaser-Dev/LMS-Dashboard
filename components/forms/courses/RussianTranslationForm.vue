@@ -2,22 +2,13 @@
 import { useCoursesStore } from '@/stores/useCoursesStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  VBtn,
-  VCard,
-  VCardActions,
-  VCardText,
-  VCombobox,
-  VTextField,
-  VTextarea,
-} from 'vuetify/components'
 
 const route = useRoute()
 const coursesStore = useCoursesStore()
 
 const form = ref({
-  courseId: route.params.id, // Assuming course ID comes from route params
-  language: 'ru', // Set to Russian
+  courseId: route.params.id, 
+  language: 'ru', 
   name: '',
   urlPic: '',
   description: '',
@@ -29,11 +20,18 @@ const form = ref({
 })
 
 const isTouched = ref(false)
+const loading = ref(false)
+const snackbar = ref({ show: false, text: '', color: 'success' })
 
-// Determine if we're in edit mode based on the Russian translation's name
+function showSnackbar(message, color = 'success') {
+  snackbar.value.text = message
+  snackbar.value.color = color
+  snackbar.value.show = true
+}
+
 const isEditMode = computed(() => {
   const ruTranslation = coursesStore.course?.translations?.ru
-  
+
   return ruTranslation && ruTranslation.name !== '' && ruTranslation.name !== null
 })
 
@@ -62,11 +60,11 @@ const handleSubmit = async () => {
   isTouched.value = true
   if (!isFormValid.value) return
 
+  loading.value = true
   try {
     if (isEditMode.value) {
-      // Edit mode: Pass translationId if available
-      await coursesStore.editTranslation({
-        translationId: coursesStore.course.translations.ru.id, // Assumes translation has an ID
+      const result = await coursesStore.editTranslation({
+        translationId: coursesStore.course.translations.ru.id,
         language: 'ru',
         name: form.value.name,
         urlPic: form.value.urlPic,
@@ -77,10 +75,17 @@ const handleSubmit = async () => {
         prerequisites: form.value.prerequisites,
         learningOutcomes: form.value.learningOutcomes,
       })
-      alert('Russian translation updated successfully!')
+
+      console.log(result)
+
+      if (!result.success) {
+        showSnackbar(result.message || 'Error updating translation', 'error')
+
+        return
+      }
+      showSnackbar('Russian translation updated successfully!', 'success')
     } else {
-      // Add mode
-      await coursesStore.addTranslation({
+      const result = await coursesStore.addTranslation({
         courseId: form.value.courseId,
         language: 'ru',
         name: form.value.name,
@@ -92,10 +97,22 @@ const handleSubmit = async () => {
         prerequisites: form.value.prerequisites,
         learningOutcomes: form.value.learningOutcomes,
       })
-      alert('Russian translation added successfully!')
+
+      if (result.success && result.translation && result.translation.id) {
+        form.value.translationId = result.translation.id
+      }
+
+      if (!result.success) {
+        showSnackbar(result.message || 'Error adding translation', 'error')
+        
+        return
+      }
+      showSnackbar('Russian translation added successfully!', 'success')
     }
   } catch (error) {
-    alert(`Error: ${error}`)
+    showSnackbar(error?.message || `Error submitting translation`, 'error')
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -175,13 +192,28 @@ const handleSubmit = async () => {
       <VBtn
         color="primary"
         variant="flat"
-        :disabled="!isFormValid"
-        :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
+        :disabled="!isFormValid || loading"
+        :prepend-icon="!loading ? (isEditMode ? 'tabler-pencil' : 'tabler-plus') : ''"
         class="px-4"
         @click="handleSubmit"
       >
+        <template v-if="loading">
+          <VProgressCircular
+            indeterminate
+            size="20"
+            color="white"
+          />
+        </template>
         {{ isEditMode ? 'Update' : 'Add' }} Russian Translation
       </VBtn>
+      <VSnackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        timeout="3000"
+        location="bottom left"
+      >
+        {{ snackbar.text }}
+      </VSnackbar>
     </VCardActions>
   </VCard>
 </template>

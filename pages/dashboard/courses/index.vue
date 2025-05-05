@@ -1,13 +1,44 @@
 <script setup>
 import DataGrid from '@/components/DataGrid.vue'
 import { useCoursesStore } from '@/stores/useCoursesStore'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const coursesStore = useCoursesStore()
+const loading = ref(false)
+const error = ref(null)
+const snackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('info')
 
-onMounted(() => {
-  coursesStore.fetchCourses()
+const showSnackbar = (message, color = 'info') => {
+  snackbarText.value = message
+  snackbarColor.value = color
+  snackbar.value = true
+}
+
+onMounted(async () => {
+  if (!coursesStore.courses.length) {
+    try {
+      loading.value = true
+      await coursesStore.fetchCourses()
+      showSnackbar('Courses loaded successfully')
+    } catch (err) {
+      error.value = err.message || 'Failed to fetch courses'
+      showSnackbar(error.value, 'error')
+    } finally {
+      loading.value = false
+    }
+  }
 })
+
+const handleDelete = async id => {
+  try {
+    await coursesStore.deleteCourse(id)
+    showSnackbar('Course deleted successfully', 'success')
+  } catch (err) {
+    showSnackbar(err.message || 'Failed to delete course', 'error')
+  }
+}
 
 const headers = [
   { title: 'Course Name', key: 'name' },
@@ -20,15 +51,25 @@ const headers = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const handleDelete = async id => {
-  await coursesStore.deleteCourse(id)
-}
+const customActions = []
 </script>
 
 <template>
+  <VSnackbar
+    v-model="snackbar"
+    :color="snackbarColor"
+    location="bottom left"
+    timeout="3000"
+  >
+    {{ snackbarText }}
+  </VSnackbar>
+
   <DataGrid
     :headers="headers"
     :items="coursesStore.courses"
+    :loading="loading"
+    :error="error"
+    :custom-actions="customActions"
     name="courses"
     @delete="handleDelete"
   />

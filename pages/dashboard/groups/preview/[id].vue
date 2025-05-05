@@ -53,15 +53,5 @@ onMounted(async () => {
         @add-students="handleAddStudents"
       />
     </div>
-
-    <div
-      v-else
-      class="d-flex justify-center align-center pa-4"
-    >
-      <VAlert
-        type="warning"
-        text="Group not found"
-      />
-    </div>
   </div>
 </template>
