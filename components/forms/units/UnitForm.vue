@@ -49,9 +49,11 @@ const handleSubmit = async () => {
     if (isEditMode.value) {
       await unitsStore.updateUnit(unitId.value, unitData)
     } else {
-      console.log('Adding new unit:', courseId)
+      const courseId = route.params.id
 
-      await unitsStore.addUnit(unitData)
+      await unitsStore.addUnit(unitData, courseId)
+
+      // Reset form after adding
       form.value.name = ''
       isTouched.value.name = false
     }
@@ -62,7 +64,6 @@ const handleSubmit = async () => {
   }
 }
 </script>
-
 
 <template>
   <VCard class="shadow-lg rounded-lg py-6">
@@ -80,6 +81,7 @@ const handleSubmit = async () => {
             dense
             required
             class="mb-4"
+            :disabled="isLoading"
             :error="isTouched.name && !form.name.trim()"
             :error-messages="isTouched.name && !form.name.trim() ? ['Name is required'] : []"
             @blur="isTouched.name = true"

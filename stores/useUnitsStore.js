@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 export const useUnitsStore = defineStore('unitsStore', () => {
   const snackbar = useSnackbarStore()
+  const coursesStore = useCoursesStore()
 
   const loading = ref(false)
   const error = ref(null)
@@ -13,11 +14,11 @@ export const useUnitsStore = defineStore('unitsStore', () => {
     currentCourseId.value = courseId
   }
 
-  const addUnit = async unitData => {
-    loading.value = true
+  const addUnit = async (unitData, courseId) => {
     error.value = null
     try {
-      await api().post('/units', unitData)
+      console.log('Adding unit:', unitData, courseId)
+      await api().post('/units', { ...unitData, courseId })
       snackbar.show('Unit added successfully', 'success')
     } catch (err) {
       console.error('Error adding unit:', err)
@@ -27,17 +28,28 @@ export const useUnitsStore = defineStore('unitsStore', () => {
       error.value = errMsg
       snackbar.show(errMsg, 'error')
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
   const updateUnit = async (unitId, unitData) => {
-    loading.value = true
     error.value = null
     try {
       await api().put(`/units/${unitId}`, unitData)
       snackbar.show('Unit updated successfully', 'success')
+
+      const course = coursesStore.course
+
+      if (course) {
+        const updatedUnits = course.units.map(unit => {
+          if (unit.id === unitId) {
+            return { ...unit, ...unitData }
+          }
+          
+          return unit
+        })
+
+        coursesStore.setCourse({ ...course, units: updatedUnits })
+      }
     } catch (err) {
       console.error(`Error updating unit with ID ${unitId}:`, err)
 
@@ -46,8 +58,6 @@ export const useUnitsStore = defineStore('unitsStore', () => {
       error.value = errMsg
       snackbar.show(errMsg, 'error')
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
@@ -58,7 +68,6 @@ export const useUnitsStore = defineStore('unitsStore', () => {
       const res = await api().get(`/units/${unitId}`)
 
       unit.value = res.data
-      snackbar.show('Unit fetched successfully', 'success')
 
       return res.data
     } catch (err) {
@@ -67,7 +76,6 @@ export const useUnitsStore = defineStore('unitsStore', () => {
       const errMsg = err.response?.data?.message || 'Failed to get unit'
 
       error.value = errMsg
-      snackbar.show(errMsg, 'error')
       throw err
     } finally {
       loading.value = false
@@ -96,7 +104,15 @@ export const useUnitsStore = defineStore('unitsStore', () => {
   const addUnitTranslation = async (unitId, translationData) => {
     try {
       await api().post(`/units/${unitId}/translations`, translationData)
-      await getUnit(unitId)
+
+      unit.value = {
+        ...unit.value,
+        translations: [
+          ...(unit.value.translations || []),
+          translationData,
+        ],
+      }
+
       snackbar.show('Translation added successfully', 'success')
     } catch (err) {
       console.error(`Error adding translation to unit ${unitId}:`, err)
@@ -111,7 +127,18 @@ export const useUnitsStore = defineStore('unitsStore', () => {
   const updateUnitTranslation = async (unitId, language, translationData) => {
     try {
       await api().put(`/units/${unitId}/translations/${language}`, translationData)
-      await getUnit(unitId)
+
+      unit.value = {
+        ...unit.value,
+        translations: unit.value.translations.map(t => {
+          if (t.language === language) {
+            return { ...t, ...translationData }
+          }
+
+          return t
+        }),
+      }
+
       snackbar.show('Translation updated successfully', 'success')
     } catch (err) {
       console.error(`Error updating translation for unit ${unitId}, lang ${language}:`, err)
@@ -135,7 +162,7 @@ export const useUnitsStore = defineStore('unitsStore', () => {
       throw new Error(errMsg)
     }
 
-    const hasTranslation = unit.value?.translations?.[language]
+    const hasTranslation = unit.value?.translations?.find(t => t.language === language)
 
     if (hasTranslation) {
       await updateUnitTranslation(unit.value.id, language, { name })

@@ -1,10 +1,7 @@
 <template>
   <div>
     <div v-if="loading">
-      <VProgressCircular
-        indeterminate
-        color="primary"
-      />
+      Loading...
     </div>
     <div v-else-if="error">
       <VAlert
@@ -23,7 +20,7 @@
           color="primary"
           variant="outlined"
           prepend-icon="tabler-pencil"
-          @click="() => router.push(`/dashboard/units/edit/${id}`)"
+          @click="() => router.push(`/dashboard/units/edit/${unit.id}`)"
         >
           Edit Unit
         </VBtn>
@@ -45,10 +42,10 @@
           </VExpansionPanelTitle>
           <VExpansionPanelText>
             <DataGrid
-              v-if="unit.lessons && unit.lessons.length"
               :headers="lessonHeaders"
               :items="unit.lessons"
               name="lessons"
+              :add-route="`${route.path}/add-lesson`"
             >
               <template #item.actions="{ item }">
                 <VBtn
@@ -71,15 +68,9 @@
                 />
               </template>
             </DataGrid>
-            <div
-              v-else
-              class="text-grey"
-            >
-              No lessons found for this unit.
-            </div>
           </VExpansionPanelText>
         </VExpansionPanel>
-        <!-- Translations Panel -->
+
         <VExpansionPanel>
           <VExpansionPanelTitle>
             <VIcon
@@ -89,15 +80,47 @@
             Translations
           </VExpansionPanelTitle>
           <VExpansionPanelText>
-            <div v-if="unit.translations && unit.translations.length">
-              <!-- Implement translations table or list here -->
-              <span>Translations coming soon...</span>
-            </div>
-            <div
-              v-else
-              class="text-grey"
-            >
-              No translations found for this unit.
+            <div>
+              <VRow>
+                <VCol
+                  v-for="lang in languages"
+                  :key="lang.value"
+                  cols="12"
+                  md="4"
+                >
+                  <VCard
+                    variant="outlined"
+                    class="h-100 d-flex flex-column"
+                  >
+                    <VCardTitle class="d-flex align-center">
+                      <VIcon
+                        :icon="lang.icon"
+                        size="24"
+                        class="me-2"
+                      />
+                      <span>{{ lang.title }}</span>
+                    </VCardTitle>
+                    <VCardText class="flex-grow-1">
+                      <h3 class="text-h6 mb-2">
+                        {{
+                          unit.translations.find(t => t.language === lang.value)?.name || '-'
+                        }}
+                      </h3>
+                    </VCardText>
+                    <VCardActions>
+                      <VBtn
+                        color="primary"
+                        :prepend-icon="unit.translations.find(t => t.language === lang.value)?.name ? 'tabler-pencil' : 'tabler-plus'"
+                        @click="goToEditTranslation(unit.id, lang.value)"
+                      >
+                        {{
+                          unit.translations.find(t => t.language === lang.value)?.name ? 'Edit' : 'Add'
+                        }}
+                      </VBtn>
+                    </VCardActions>
+                  </VCard>
+                </VCol>
+              </VRow>
             </div>
           </VExpansionPanelText>
         </VExpansionPanel>
@@ -118,7 +141,6 @@ const unitsStore = useUnitsStore()
 
 const { unit } = storeToRefs(unitsStore)
 const openPanels = ref([0, 1])
-const activeTab = ref('lessons')
 const loading = ref(false)
 const error = ref(null)
 
@@ -130,14 +152,34 @@ const lessonHeaders = [
 ]
 
 const previewLesson = lesson => {
-  router
-}
-
-const editLesson = lesson => {
-  // TODO: Implement lesson edit
+  // TODO: Implement preview
 }
 
 const deleteUnit = async unitId => {
+  console.log('Deleting unit:', unitId)
+}
+
+// Language mappings
+const languages = [
+  { title: 'Arabic', value: 'ar', icon: 'tabler-letter-a' },
+  { title: 'English', value: 'en', icon: 'tabler-language' },
+  { title: 'Russian', value: 'ru', icon: 'tabler-letter-r' },
+]
+
+const getLanguageTitle = langCode => {
+  const lang = languages.find(l => l.value === langCode)
+
+  return lang ? lang.title : langCode
+}
+
+const getLanguageIcon = langCode => {
+  const lang = languages.find(l => l.value === langCode)
+
+  return lang ? lang.icon : 'tabler-language'
+}
+
+const goToEditTranslation = (unitId, language) => {
+  router.push(`/dashboard/units/edit/${unitId}/?tab=${language}`)
 }
 
 onMounted(async () => {

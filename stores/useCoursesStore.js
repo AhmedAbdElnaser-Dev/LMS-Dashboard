@@ -212,6 +212,10 @@ export const useCoursesStore = defineStore('coursesStore', () => {
     }
   }
 
+  const setCourse = courseData => {
+    course.value = courseData
+  }
+
   return {
     courses,
     course,
@@ -228,5 +232,6 @@ export const useCoursesStore = defineStore('coursesStore', () => {
     addTranslation,
     editTranslation,
     deleteCourse,
+    setCourse,
   }
 })

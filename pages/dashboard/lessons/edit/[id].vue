@@ -1,13 +1,13 @@
 <script setup>
-import ArabicTranslationForm from '@/components/forms/books/ArabicTranslationForm.vue'
-import BookForm from '@/components/forms/books/BookForm.vue'
-import EnglishTranslationForm from '@/components/forms/books/EnglishTranslationForm.vue'
 import EditOutline from '@/components/forms/EditOutline.vue'
+import ArabicTranslationForm from '@/components/forms/lessons/ArabicTranslationForm.vue'
+import EnglishTranslationForm from '@/components/forms/lessons/EnglishTranslationForm.vue'
+import BookForm from '@/components/forms/lessons/LessonForm.vue'
 
 const basicInfo = BookForm
 const arabicTranslation = ArabicTranslationForm
 const englishTranslation = EnglishTranslationForm
-const russianTranslation = null
+const russianTranslation = russianTranslation
 </script>
 
 <template>
