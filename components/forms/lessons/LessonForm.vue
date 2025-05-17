@@ -14,6 +14,13 @@ const form = ref({
   description: '',
 })
 
+onMounted(() => {
+  if (isEditMode.value && lessonId.value) {
+    form.value.title = lessonsStore.state.lesson?.title || ''
+    form.value.description = lessonsStore.state.lesson?.description || ''
+  }
+})
+
 const isTouched = ref({
   title: false,
   description: false,

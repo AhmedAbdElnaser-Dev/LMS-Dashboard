@@ -44,7 +44,7 @@ export const useUnitsStore = defineStore('unitsStore', () => {
           if (unit.id === unitId) {
             return { ...unit, ...unitData }
           }
-          
+
           return unit
         })
 
@@ -171,6 +171,17 @@ export const useUnitsStore = defineStore('unitsStore', () => {
     }
   }
 
+  async function deleteLesson(lessonId) {
+    try {
+      await api().delete(`/lessons/${lessonId}`)
+      snackbar.show('Lesson deleted successfully!', 'success')
+      unit.value.lessons = unit.value.lessons.filter(l => l.id !== lessonId)
+    } catch (err) {
+      error.value = err.message
+      snackbar.show(`Failed to delete lesson`, 'error')
+    }
+  }
+
   return {
     loading,
     error,
@@ -183,5 +194,6 @@ export const useUnitsStore = defineStore('unitsStore', () => {
     deleteUnit,
     fetchUnitById,
     submitTranslation,
+    deleteLesson,
   }
 })

@@ -24,7 +24,7 @@ const headers = [
 
 // Handle delete
 async function handleDelete (id) {
-  console.log("Delete")
+  console.log("Delete book with ID:", id)
   booksStore.deleteBook(id)
 };
 
@@ -47,13 +47,14 @@ const formatDate = dateString => {
       :items="booksStore.books"
       :loading="booksStore.loading"
       name="books"
-      :on-delete="handleDelete"
+      @delete="handleDelete"
     >
       <!-- PDF Link -->
       <template #item.name="{ item }">
         <a
           :href="url(item.urlPdf)"
           target="_blank"
+          rel="noopener noreferrer"
           class="text-blue-500 underline"
         >
           {{ item.name }}

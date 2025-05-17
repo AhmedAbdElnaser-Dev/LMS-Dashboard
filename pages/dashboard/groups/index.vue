@@ -27,7 +27,7 @@ const headers = [
 ]
 
 // Handle delete
-const handleDelete = (id) => {
+const handleDelete = id => {
   books.value = books.value.filter(book => book.id !== id)
 }
 </script>
@@ -46,7 +46,10 @@ const handleDelete = (id) => {
 
     <!-- Custom slot for PDF -->
     <template #item.pdf="{ item }">
-      <a :href="item.pdf" target="_blank">{{ item.pdf }}</a>
+      <a
+        :href="item.pdf"
+        target="_blank"
+      >{{ item.pdf }}</a>
     </template>
 
     <!-- Custom slot for Picture (Using ImagePreview) -->

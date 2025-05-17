@@ -1,60 +1,80 @@
 <script setup>
-import { useUnitsStore } from '@/stores/useUnitsStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const unitsStore = useUnitsStore()
+const lessonsStore = useLessonsStore()
 
 const form = ref({
-  name: '',
+  title: '',
+  description: '',
+  content: '',
 })
 
 const isTouched = ref(false)
 const isLoading = ref(false)
+const lessonId = computed(() => route.params.id)
 
 const isEditMode = computed(() => {
-  const ruTranslation = unitsStore.unit?.translations.find(
+  return lessonsStore.state.lesson?.translations.find(
     translation => translation.language === 'ru',
   )
-
-  return ruTranslation && ruTranslation.name !== ''
 })
 
 onMounted(async () => {
-  if (!unitsStore.unit && route.params.id) {
-    await unitsStore.getUnit(route.params.id)
+  if (isEditMode.value && lessonId.value) {
+    const ruTranslation = lessonsStore.state.lesson?.translations?.find(
+      translation => translation.language === 'ru',
+    )
+
+    if (ruTranslation) {
+      form.value.title = ruTranslation.title || ''
+      form.value.description = ruTranslation.description || ''
+      form.value.content = ruTranslation.content || ''
+    }
   }
 
-  const ruTranslation = unitsStore.unit?.translations?.find(
-    translation => translation.language === 'ru',
-  )
+  if (!lessonsStore.state.lesson && lessonId.value) {
+    isLoading.value = true
+    try {
+      await lessonsStore.getLesson(lessonId.value)
 
-  if (!ruTranslation) {
-    return
+      const ruTranslation = lessonsStore.state.lesson?.translations?.find(
+        translation => translation.language === 'ru',
+      )
+
+      if (ruTranslation) {
+        form.value.title = ruTranslation.title || ''
+        form.value.description = ruTranslation.description || ''
+        form.value.content = ruTranslation.content || ''
+        isTouched.value = true
+      }
+    } catch (error) {
+      console.error('Failed to load lesson:', error)
+    } finally {
+      isLoading.value = false
+    }
   }
-
-  form.value.name = ruTranslation.name || ''
-  isTouched.value = true
 })
 
-const isFormValid = computed(() => form.value.name.trim() !== '')
+const isFormValid = computed(() => {
+  return form.value.title.trim() !== '' &&
+         form.value.description.trim() !== '' &&
+         form.value.content.trim() !== ''
+})
 
 const handleSubmit = async () => {
   isTouched.value = true
 
   if (isFormValid.value) {
+    isLoading.value = true
     try {
-      isLoading.value = true
-
-      await unitsStore.submitTranslation({
+      await lessonsStore.submitTranslation({
         language: 'ru',
-        name: form.value.name,
+        title: form.value.title,
+        description: form.value.description,
+        content: form.value.content,
       })
-
-      // Optionally reset form after success
-      // form.value.name = ''
-      // isTouched.value = false
     } catch (error) {
       console.error('Submit failed:', error)
     } finally {
@@ -67,18 +87,58 @@ const handleSubmit = async () => {
 <template>
   <VCard class="shadow-lg rounded-lg py-6">
     <VCardText class="pa-6">
-      <VTextField
-        v-model="form.name"
-        label="Unit Name (Russian)"
-        variant="outlined"
-        dense
-        required
-        class="mb-4"
-        :disabled="isLoading"
-        :error="isTouched && !form.name.trim()"
-        :error-messages="isTouched && !form.name.trim() ? ['This field is required'] : []"
-        @blur="isTouched = true"
-      />
+      <VRow>
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VTextField
+            v-model="form.title"
+            label="Lesson Title (Russian)"
+            variant="outlined"
+            dense
+            required
+            class="mb-4"
+            :disabled="isLoading"
+            :error="isTouched && !form.title.trim()"
+            :error-messages="isTouched && !form.title.trim() ? ['This field is required'] : []"
+            @blur="isTouched = true"
+          />
+        </vcol>
+
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VTextField
+            v-model="form.description"
+            label="Lesson Description (Russian)"
+            variant="outlined"
+            dense
+            required
+            class="mb-4"
+            :disabled="isLoading"
+            :error="isTouched && !form.description.trim()"
+            :error-messages="isTouched && !form.description.trim() ? ['This field is required'] : []"
+            @blur="isTouched = true"
+          />
+        </VCol>
+
+        <VCol cols="12">
+          <VTextarea
+            v-model="form.content"
+            label="Lesson Content (Russian)"
+            variant="outlined"
+            dense
+            required
+            class="mb-4"
+            :disabled="isLoading"
+            :error="isTouched && !form.description.trim()"
+            :error-messages="isTouched && !form.description.trim() ? ['This field is required'] : []"
+            @blur="isTouched = true"
+          />
+        </VCol>
+      </VRow>
     </VCardText>
 
     <VCardActions class="px-6 justify-start">

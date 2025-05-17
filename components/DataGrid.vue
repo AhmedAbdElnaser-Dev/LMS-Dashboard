@@ -197,7 +197,7 @@ const isImageColumn = key => {
       <VCard>
         <VCardTitle>Confirm Deletion</VCardTitle>
         <VCardText>
-          <p>Are you sure you want to delete "{{ itemToDelete?.name }}"?</p>
+          <p>Are you sure you want to delete "{{ itemToDelete?.name || itemToDelete?.title }}"?</p>
         </VCardText>
         <VCardActions>
           <VSpacer />

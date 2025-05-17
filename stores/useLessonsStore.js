@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, toRefs } from 'vue'
+import { reactive } from 'vue'
 import { useSnackbarStore } from './snackbar'
 
 export const useLessonsStore = defineStore('lessonsStore', () => {
@@ -76,28 +76,69 @@ export const useLessonsStore = defineStore('lessonsStore', () => {
     }
   }
 
-  async function deleteLesson(lessonId) {
-    state.loading = true
+  async function addLessonTranslation(lessonId, translationData) {
     state.error = null
 
     try {
-      await api().delete(`/lessons/${lessonId}`)
-      state.lessons = state.lessons.filter(l => l.id !== lessonId)
-      snackbar.show('Lesson deleted successfully!', 'success')
-    } catch (err) {
+      const response = await api().post(`/lessons/translation`, { lessonId, ...translationData })
+
+      state.lesson.translations.push(response.data)
+
+      snackbar.show('Translation added successfully', 'success')
+    }
+    catch (err) {
       state.error = err.message
-      snackbar.show(`Failed to delete lesson`, 'error')
-    } finally {
-      state.loading = false
+      snackbar.show(`Failed to add translation`, 'error')
+    }
+  }
+
+  async function updateLessonTranslation(lessonId, translationData) {
+    state.error = null
+
+    try {
+      const response = await api().put(`/lessons/translation/${lessonId}`, translationData)
+
+      state.lesson.translations = state.lesson.translations.map(t => {
+        if (t.language === translationData.language) {
+          return { ...t, ...translationData }
+        }
+
+        return t
+      },
+      )
+      snackbar.show('Translation updated successfully', 'success')
+    }
+    catch (err) {
+      state.error = err.message
+      snackbar.show(`Failed to update translation`, 'error')
+    }
+  }
+
+  const submitTranslation = async data => {
+    if (!state.lesson.id) {
+      const errMsg = 'Lesson not loaded.'
+
+      snackbar.show(errMsg, 'error')
+      throw new Error(errMsg)
+    }
+
+    const hasTranslation = state.lesson?.translations?.find(t => t.language === data.language)
+
+    if (hasTranslation) {
+      const translationId = state.lesson?.translations?.find(t => t.language === data.language)?.id
+
+      await updateLessonTranslation(translationId, data)
+    } else {
+      await addLessonTranslation(state.lesson.id, data)
     }
   }
 
   return {
-    ...toRefs(state),
+    state,
     getLesson,
     getLessons,
     addLesson,
     updateLesson,
-    deleteLesson,
+    submitTranslation,
   }
 })

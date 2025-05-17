@@ -2,21 +2,16 @@
 import { useBooksStore } from '@/stores/useBookStore'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  VBtn, VCard, VCardActions, VCardText, VCardTitle,
-  VCol, VFileInput, VRow, VTextField,
-} from 'vuetify/components'
 
 const booksStore = useBooksStore()
 const route = useRoute()
 
-// Check if the current route includes "edit"
 const isEditMode = computed(() => route.path.includes('edit'))
 
 const form = ref({
   name: '',
-  pdf: null,
-  pic: null,
+  pdf: [],
+  pic: [],
 })
 
 const isTouched = ref({
@@ -25,53 +20,66 @@ const isTouched = ref({
   pic: false,
 })
 
-// Watch selectedBook only when in edit mode
+const isLoading = ref(false)
+
 watch(() => isEditMode.value, editing => {
   if (editing && booksStore.selectedBook) {
     form.value = {
       name: booksStore.selectedBook.name || '',
-      pdf: null,
-      pic: null,
+      pdf: [],
+      pic: [],
     }
+
+    isTouched.value.pdf = false
+    isTouched.value.pic = false
   }
 }, { immediate: true })
 
 const isFormValid = computed(() => {
+  if (isEditMode.value) {
+    return form.value.name.trim() !== ''
+  }
+
   return form.value.name.trim() !== '' &&
-         form.value.pdf instanceof File &&
-         form.value.pic instanceof File
+         form.value.pdf.length === 1 && form.value.pdf[0] instanceof File &&
+         form.value.pic.length === 1 && form.value.pic[0] instanceof File
 })
 
-const handleFileChange = (event, type) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  if (type === 'pdf' && file.type !== 'application/pdf') {
-    form.value.pdf = null
-    alert('Please select a valid PDF file.')
-  } else if (type === 'pic' && !file.type.startsWith('image/')) {
-    form.value.pic = null
-    alert('Please select a valid image file.')
-  } else {
-    form.value[type] = file
-  }
-}
-
-const handleSubmit = () => {
+const handleSubmit = async () => {
   isTouched.value.name = true
-  isTouched.value.pdf = true
-  isTouched.value.pic = true
+  if (!isEditMode.value) {
+    isTouched.value.pdf = true
+    isTouched.value.pic = true
+  }
 
-  if (isFormValid.value) {
+  if (!isFormValid.value) return
+
+  try {
+    isLoading.value = true
+
     if (isEditMode.value) {
-      console.log('Updating book:', form.value)
-    } else {
-      booksStore.addBook({
+      await booksStore.updateBook(route.params.id, {
         name: form.value.name,
-        pdfFile: form.value.pdf,
-        picFile: form.value.pic,
       })
+
+    } else {
+      const formData = new FormData()
+
+      formData.append('Name', form.value.name)
+      formData.append('PdfFile', form.value.pdf[0])
+      formData.append('PicFile', form.value.pic[0])
+
+      await booksStore.addBook(formData)
+
+      form.value = { name: '', pdf: [], pic: [] }
+      isTouched.value = { name: false, pdf: false, pic: false }
+
     }
+  } catch (err) {
+    console.error('Error submitting form:', err)
+
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -95,6 +103,7 @@ const handleSubmit = () => {
             dense
             required
             class="mb-4"
+            :disabled="isLoading"
             :error="isTouched.name && !form.name.trim()"
             :error-messages="isTouched.name && !form.name.trim() ? ['This field is required'] : []"
             @blur="isTouched.name = true"
@@ -102,36 +111,48 @@ const handleSubmit = () => {
         </VCol>
 
         <VCol
+          v-if="!isEditMode"
           cols="12"
           md="6"
         >
           <VFileInput
+            v-model="form.pdf"
             label="Book PDF"
             variant="outlined"
             dense
-            accept=".pdf"
+            accept="application/pdf"
             required
             class="mb-4"
-            :error="isTouched.pdf && !form.pdf"
-            :error-messages="isTouched.pdf && !form.pdf ? ['PDF file is required'] : []"
-            @change="(event) => handleFileChange(event, 'pdf')"
+            :disabled="isLoading"
+            :error="isTouched.pdf && form.pdf.length === 0"
+            :error-messages="isTouched.pdf && form.pdf.length === 0 ? ['PDF file is required'] : []"
+            :rules="[
+              v => v.length === 0 || v[0].type === 'application/pdf' || 'Only PDF files are allowed',
+              v => v.length === 0 || v[0].size < 5 * 1024 * 1024 || 'File size must be less than 5MB',
+            ]"
           />
         </VCol>
 
         <VCol
+          v-if="!isEditMode"
           cols="12"
           md="6"
         >
           <VFileInput
+            v-model="form.pic"
             label="Book Picture"
             variant="outlined"
             dense
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif"
             required
             class="mb-4"
-            :error="isTouched.pic && !form.pic"
-            :error-messages="isTouched.pic && !form.pic ? ['Image file is required'] : []"
-            @change="(event) => handleFileChange(event, 'pic')"
+            :disabled="isLoading"
+            :error="isTouched.pic && form.pic.length === 0"
+            :error-messages="isTouched.pic && form.pic.length === 0 ? ['Image file is required'] : []"
+            :rules="[
+              v => v.length === 0 || ['image/jpeg', 'image/png', 'image/gif'].includes(v[0].type) || 'Only JPEG, PNG, or GIF files are allowed',
+              v => v.length === 0 || v[0].size < 5 * 1024 * 1024 || 'File size must be less than 5MB',
+            ]"
           />
         </VCol>
       </VRow>
@@ -141,7 +162,8 @@ const handleSubmit = () => {
       <VBtn
         color="primary"
         variant="flat"
-        :disabled="!isFormValid"
+        :disabled="!isFormValid || isLoading"
+        :loading="isLoading"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
         class="px-4"
         @click="handleSubmit"

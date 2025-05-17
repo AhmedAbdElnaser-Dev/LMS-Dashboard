@@ -1,140 +1,296 @@
-<script setup>
-import { useBooksStore } from "@/stores/useBookStore"
-import { storeToRefs } from "pinia"
-import { computed, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import {
-  VBtn, VCard, VCardText, VCol, VDataTable, VImg, VRow,
-} from "vuetify/components"
+<script>
+import { useBooksStore } from '@/stores/useBookStore'
+import { storeToRefs } from 'pinia'
+import { computed, defineComponent, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-const route = useRoute()
-const router = useRouter()
-const store = useBooksStore()
+export default defineComponent({
+  setup() {
+    // Router and Store
+    const route = useRoute()
+    const router = useRouter()
+    const booksStore = useBooksStore()
+    const { selectedBook, loading, error } = storeToRefs(booksStore)
 
-const { selectedBook, loading, error } = storeToRefs(store)
-const bookId = route.params.id
+    // Computed
+    const bookId = computed(() => route.params.id)
 
-const navigateToEdit = tab => {
-  router.push(`/dashboard/books/edit/${bookId}?tab=${tab}`)
-}
+    // Refs for PDF upload
+    const pdfFile = ref(null)
+    const pdfInputRef = ref(null)
 
-onMounted(() => {
-  if (bookId) {
-    store.fetchBookById(bookId)
-  }
-})
+    // Refs for picture upload
+    const pictureFile = ref(null)  // Fixed missing parenthesis
+    const pictureInputRef = ref(null)
 
-const headers = [
-  { title: "Language", key: "language" },
-  { title: "Title", key: "name" },
-  { title: "Description", key: "description" },
-  { title: "Actions", key: "actions" },
-]
+    // Constants
+    const languageNames = {
+      en: 'English',
+      ar: 'Arabic',
+      ru: 'Russian',
+    }
 
-const getLanguageName = code => {
-  const languageNames = {
-    en: 'English',
-    ar: 'Arabic',
-    ru: 'Russian',
-  }
+    const headers = [
+      { title: 'Language', key: 'language', width: '15%' },
+      { title: 'Title', key: 'name', width: '25%' },
+      { title: 'Description', key: 'description', width: '45%' },
+      { title: 'Actions', key: 'actions', width: '15%' },
+    ]
 
-  
-  return languageNames[code.toLowerCase()] || code.toUpperCase()
-}
+    // Computed Properties
+    const translationItems = computed(() => {
+      if (!selectedBook.value?.translations) return []
 
-const translationItems = computed(() => {
-  if (!selectedBook.value?.translations) return []
+      return Object.entries(selectedBook.value.translations)
+        .filter(([langCode]) => ['en', 'ar', 'ru'].includes(langCode))
+        .map(([langCode, translation]) => ({
+          language: getLanguageName(langCode),
+          name: translation.name || 'No name available',
+          description: translation.description || 'No description available',
+          languageCode: langCode.toLowerCase(),
+        }))
+    })
 
-  return Object.entries(selectedBook.value.translations)
-    .filter(([langCode]) => ['en', 'ar', 'ru'].includes(langCode))
-    .map(([langCode, translation]) => ({
-      language: getLanguageName(langCode),
-      name: translation.name,
-      description: translation.description,
-      languageCode: langCode.toLowerCase(),
-    }))
+    // Methods
+    const navigateToEdit = tab => {
+      router.push(`/dashboard/books/edit/${bookId.value}?tab=${tab}`)
+    }
+
+    const getLanguageName = code => {
+      return languageNames[code.toLowerCase()] || code.toUpperCase()
+    }
+
+    const formatDate = date => {
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    }
+
+    // PDF upload handlers
+    const openPdfInput = () => {
+      if (pdfInputRef.value) {
+        pdfInputRef.value.$el.querySelector('input').click()
+      }
+    }
+
+    const uploadPdf = async () => {
+      if (!pdfFile.value) {
+        console.error('No PDF file selected')
+
+        return
+      }
+
+      const formData = new FormData()
+
+      formData.append('PDF', pdfFile.value[0])
+
+      try {
+        await booksStore.editBook(bookId.value, formData)
+        pdfFile.value = null // Reset file input
+      } catch (err) {
+        console.error('PDF upload failed:', err)
+      }
+    }
+
+    // Picture upload handlers
+    const openPictureInput = () => {
+      if (pictureInputRef.value) {
+        pictureInputRef.value.$el.querySelector('input').click()
+      }
+    }
+
+    const uploadPicture = async () => {
+      if (!pictureFile.value) {
+        console.error('No picture file selected')
+
+        return
+      }
+
+      const formData = new FormData()
+
+      formData.append('Picture', pictureFile.value[0])
+
+      try {
+        await booksStore.editBookPicture(bookId.value, formData)
+        pictureFile.value = null // Reset file input
+      } catch (err) {
+        console.error('Picture upload failed:', err)
+      }
+    }
+
+    // Lifecycle Hooks
+    onMounted(() => {
+      if (bookId.value) {
+        booksStore.fetchBookById(bookId.value)
+      }
+    })
+
+    return {
+      // State
+      selectedBook,
+      loading,
+      error,
+
+      // Constants
+      headers,
+
+      // Computed
+      translationItems,
+
+      // Methods
+      navigateToEdit,
+      formatDate,
+
+      // PDF related
+      pdfFile,
+      pdfInputRef,
+      openPdfInput,
+      uploadPdf,
+
+      // Picture related
+      pictureFile,
+      pictureInputRef,
+      openPictureInput,
+      uploadPicture,
+    }
+  },
 })
 </script>
 
 <template>
   <VCard class="pa-6">
-    <VRow v-if="loading">
+    <!-- Loading State -->
+    <VRow
+      v-if="loading"
+      justify="center"
+    >
       <VCol
         cols="12"
         class="text-center"
       >
-        <p>Loading book details...</p>
+        <VProgressCircular
+          indeterminate
+          color="primary"
+        />
+        Loading book details...
       </VCol>
     </VRow>
 
-    <VRow v-else-if="error">
-      <VCol
-        cols="12"
-        class="text-center"
-      >
-        <p class="text-red">
-          {{ error }}
-        </p>
-      </VCol>
-    </VRow>
-
+    <!-- Content -->
     <VRow v-else-if="selectedBook">
+      <!-- Book Image and File Controls -->
       <VCol
         cols="12"
         md="4"
-        class="d-flex flex-column align-center"
+        class="d-flex flex-column align-center gap-4"
       >
         <VImg
           :src="url(selectedBook.urlPic)"
-          class="rounded-lg shadow-sm mb-4"
+          :alt="selectedBook.name"
+          class="rounded-lg shadow-sm"
           height="300"
           width="280"
           cover
-          :alt="selectedBook.name"
         />
-        <VBtn
-          color="primary"
-          variant="outlined"
-          :href="url(selectedBook.urlPdf)"
-          target="_blank"
-          :disabled="!selectedBook.urlPdf"
-        >
-          Preview PDF
-        </VBtn>
+
+        <div class="d-flex flex-column align-center gap-2">
+          <!-- Hidden File Inputs -->
+          <VFileInput
+            ref="pictureInputRef"
+            v-model="pictureFile"
+            label="Upload Picture"
+            accept="image/jpeg,image/png,image/gif"
+            variant="outlined"
+            class="hidden-file-input"
+            :rules="[
+              v => !!v || 'Picture is required',
+              v => v && ['image/jpeg', 'image/png', 'image/gif'].includes(v.type) || 'Only JPEG, PNG, or GIF files are allowed',
+            ]"
+            @change="uploadPicture"
+          />
+
+          <VFileInput
+            ref="pdfInputRef"
+            v-model="pdfFile"
+            label="Upload PDF"
+            accept=".pdf"
+            variant="outlined"
+            class="hidden-file-input"
+            :rules="[v => !!v || 'PDF is required', v => v && v.type === 'application/pdf' || 'Only PDF files are allowed']"
+            @change="uploadPdf"
+          />
+
+          <!-- Action Buttons -->
+          <VRow>
+            <VCol cols="6">
+              <VBtn
+                color="primary"
+                variant="outlined"
+                :disabled="!selectedBook"
+                @click="openPdfInput"
+              >
+                Upload PDF
+              </VBtn>
+            </VCol>
+            <VCol cols="6">
+              <VBtn
+                color="primary"
+                variant="outlined"
+                :href="url(selectedBook.urlPdf)"
+                target="_blank"
+                rel="noopener noreferrer"
+                :disabled="!selectedBook.urlPdf"
+              >
+                Preview PDF
+              </VBtn>
+            </VCol>
+          </VRow>
+        </div>
       </VCol>
 
+      <!-- Book Information -->
       <VCol
         cols="12"
         md="8"
+        class="d-flex flex-column gap-6"
       >
-        <h1 class="text-h4 font-weight-bold mb-4">
+        <h1 class="text-h4 font-weight-bold">
           {{ selectedBook.name }}
         </h1>
 
-        <div class="mb-6">
-          <p class="text-body-1 mb-1">
+        <div class="text-body-1">
+          <p>
             <strong>Created:</strong>
-            {{ new Date(selectedBook.createdAt).toLocaleDateString() }}
+            {{ formatDate(selectedBook.createdAt) }}
           </p>
-          <p
-            v-if="selectedBook.updatedAt"
-            class="text-body-1"
-          >
+          <p v-if="selectedBook.updatedAt">
             <strong>Last updated:</strong>
-            {{ new Date(selectedBook.updatedAt).toLocaleDateString() }}
+            {{ formatDate(selectedBook.updatedAt) }}
           </p>
         </div>
 
-        <VBtn
-          color="primary"
-          variant="outlined"
-          class="mb-6"
-          @click="navigateToEdit('basic')"
-        >
-          Edit Basic Info
-        </VBtn>
+        <div class="d-flex gap-2">
+          <VBtn
+            color="primary"
+            variant="outlined"
+            @click="navigateToEdit('basic')"
+          >
+            Edit Basic Info
+          </VBtn>
+          <VBtn
+            color="primary"
+            variant="outlined"
+            :disabled="!selectedBook"
+            @click="openPictureInput"
+          >
+            Change Picture
+          </VBtn>
+        </div>
 
-        <VCardText class="pa-0">
+        <!-- Translations Table -->
+        <section>
           <h2 class="text-h5 mb-4">
             Translations
           </h2>
@@ -142,7 +298,6 @@ const translationItems = computed(() => {
             :headers="headers"
             :items="translationItems"
             class="elevation-1"
-            disable-pagination
             hide-default-footer
           >
             <template #item.name="{ item }">
@@ -150,31 +305,47 @@ const translationItems = computed(() => {
                 class="text-truncate"
                 style="max-inline-size: 300px;"
               >
-                {{ item.description || 'No name available' }}
+                {{ item.name }}
               </div>
             </template>
-
             <template #item.description="{ item }">
               <div
                 class="text-truncate"
                 style="max-inline-size: 300px;"
               >
-                {{ item.description || 'No description available' }}
+                {{ item.description }}
               </div>
             </template>
-
             <template #item.actions="{ item }">
               <VBtn
                 color="primary"
                 variant="text"
                 @click="navigateToEdit(item.languageCode)"
               >
-                Edit {{ getLanguageName(item.languageCode) }}
+                Edit {{ item.language }}
               </VBtn>
             </template>
           </VDataTable>
-        </VCardText>
+        </section>
       </VCol>
     </VRow>
   </VCard>
 </template>
+
+<style scoped>
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.hidden-file-input {
+  display: none;
+}
+</style>

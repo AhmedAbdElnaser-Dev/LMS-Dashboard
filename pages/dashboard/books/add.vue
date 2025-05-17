@@ -1,6 +1,6 @@
 <script setup>
 import BookForm from '@/components/forms/books/BookForm.vue'
-import { useBooksStore } from '@/stores/useBookStore.js'
+import { useBooksStore } from '@/stores/useBookStore'
 
 const booksStore = useBooksStore()
 

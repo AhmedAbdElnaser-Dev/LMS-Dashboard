@@ -46,28 +46,8 @@
               :items="unit.lessons"
               name="lessons"
               :add-route="`${route.path}/add-lesson`"
-            >
-              <template #item.actions="{ item }">
-                <VBtn
-                  icon="tabler-eye"
-                  variant="text"
-                  color="primary"
-                  @click="previewLesson(item)"
-                />
-                <VBtn
-                  icon="tabler-pencil"
-                  variant="text"
-                  color="warning"
-                  @click="editLesson(item)"
-                />
-                <VBtn
-                  icon="tabler-trash"
-                  variant="text"
-                  color="error"
-                  @click="deleteUnit(item.id)"
-                />
-              </template>
-            </DataGrid>
+              @delete="deleteLesson"
+            />
           </VExpansionPanelText>
         </VExpansionPanel>
 
@@ -155,8 +135,8 @@ const previewLesson = lesson => {
   // TODO: Implement preview
 }
 
-const deleteUnit = async unitId => {
-  console.log('Deleting unit:', unitId)
+const deleteLesson = lessonId => {
+  unitsStore.deleteLesson(lessonId)
 }
 
 // Language mappings
