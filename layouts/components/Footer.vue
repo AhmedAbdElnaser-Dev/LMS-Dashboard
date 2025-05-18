@@ -4,19 +4,12 @@
     <span class="d-flex align-center text-medium-emphasis">
       &copy;
       {{ new Date().getFullYear() }}
-      Made With
-      <VIcon
-        icon="tabler-heart-filled"
-        color="error"
-        size="1.25rem"
-        class="mx-1"
-      />
-      By <a
-        href="https://pixinvent.com"
+      Made By <a
+        href="https://www.linkedin.com/in/ahmed-abd-elnaser-845153226/"
         target="_blank"
         rel="noopener noreferrer"
         class="text-primary ms-1"
-      >Pixinvent</a>
+      >Ahmed AbdElnaser and someone</a>
     </span>
     <!-- 👉 Footer: right content -->
     <span class="d-md-flex gap-x-4 text-primary d-none">
