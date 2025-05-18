@@ -2,7 +2,7 @@
   <VSnackbar
     v-model="visible"
     :color="current?.type || 'info'"
-    location="bottom"
+    location="bottom left"
     timeout="3000"
   >
     {{ current?.message }}

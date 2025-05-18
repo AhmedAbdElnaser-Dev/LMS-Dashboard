@@ -1,3 +1,4 @@
+import { useSnackbarStore } from '@/stores/snackbar'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -11,7 +12,13 @@ export const useCoursesStore = defineStore('coursesStore', () => {
   const loading = ref(false)
   const error = ref(null)
 
-  // Actions
+  // Snackbar store
+  const snackbar = useSnackbarStore()
+
+  // Helper functions for snackbar messages
+  const showSuccess = message => snackbar.show(message, 'success')
+  const showError = message => snackbar.show(message, 'error')
+
   const fetchCourses = async () => {
     loading.value = true
     error.value = null
@@ -44,7 +51,7 @@ export const useCoursesStore = defineStore('coursesStore', () => {
       departments.value = departmentsRes.data
     } catch (err) {
       error.value = err
-      console.error('Failed to fetch form data:', err)
+      showError('Failed to load form data')
     } finally {
       loading.value = false
     }
@@ -74,25 +81,24 @@ export const useCoursesStore = defineStore('coursesStore', () => {
 
       if (res.status != 200) {
         error.value = "Failed to add Course"
+        showError('Failed to add course')
 
         return { success: false, message: "Failed to add Course" }
       }
 
-      console.log(courses.value.length)
-
       if (courses.value.length !== 0) {
         courses.value.unshift(res.data.course)
-        console.log(courses.value)
-        console.log(res)
-        console.log(res.data.course)
       }
+
+      showSuccess('Course added successfully')
 
       return { success: true }
     } catch (err) {
       error.value = err
+      showError('Failed to add course')
       console.error('Failed to add course:', err)
 
-      return { success: false, message: "Failed to add Course" }
+      return { success: false, message: err.response?.data?.message || "Failed to add Course" }
     } finally {
       loading.value = false
     }
@@ -108,10 +114,14 @@ export const useCoursesStore = defineStore('coursesStore', () => {
         if (course.value && course.value.id === courseId) {
           course.value = null
         }
+        showSuccess('Course deleted successfully')
       }
     } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Failed to delete course'
+
+      error.value = errorMsg
+      showError(errorMsg)
       console.error(`Error deleting course with ID ${courseId}:`, err)
-      error.value = err.response?.data?.message || 'Failed to delete course'
       throw err
     } finally {
       loading.value = false
@@ -131,14 +141,20 @@ export const useCoursesStore = defineStore('coursesStore', () => {
         if (course.value && course.value.id === id) {
           course.value = { ...course.value, ...courseData }
         }
+        showSuccess('Course updated successfully')
 
         return { success: true }
       } else {
+        showError('Failed to update course')
+
         return { success: false, message: "Failed to update Course" }
       }
     } catch (err) {
       error.value = err
+      showError('Failed to update course')
       console.error(`Failed to update course with id ${id}:`, err)
+
+      return { success: false, message: err.response?.data?.message || "Failed to update course" }
     } finally {
       loading.value = false
     }
@@ -169,12 +185,17 @@ export const useCoursesStore = defineStore('coursesStore', () => {
         }
       }
 
+      showSuccess('Translation added successfully')
+
       return { success: true, translation: newTranslation }
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to add translation'
+      const errorMsg = err.response?.data?.message || 'Failed to add translation'
+
+      error.value = errorMsg
+      showError(errorMsg)
       console.error('Failed to add translation:', err)
 
-      return { success: false, message: 'Failed to add translation' }
+      return { success: false, message: errorMsg }
     } finally {
       loading.value = false
     }
@@ -202,11 +223,16 @@ export const useCoursesStore = defineStore('coursesStore', () => {
           updatedTranslation
       }
 
+      showSuccess('Translation updated successfully')
+
       return { success: true }
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to edit translation'
+      const errorMsg = err.response?.data?.message || 'Failed to edit translation'
 
-      return { success: false }
+      error.value = errorMsg
+      showError(errorMsg)
+
+      return { success: false, message: errorMsg }
     } finally {
       loading.value = false
     }

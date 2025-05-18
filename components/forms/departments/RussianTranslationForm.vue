@@ -11,10 +11,11 @@ const form = ref({
 })
 
 const isTouched = ref(false)
+const isLoading = ref(false)
 
 const isEditMode = computed(() => {
   const ruTranslation = departmentsStore.department?.translations?.ru
-  
+
   return ruTranslation && ruTranslation.name !== ''
 })
 
@@ -24,17 +25,22 @@ onMounted(() => {
   form.value.name = ruTranslation?.name || ''
 })
 
-const isFormValid = computed(() =>
-  form.value.name.trim() !== '',
-)
+const isFormValid = computed(() => form.value.name.trim() !== '')
 
 const handleSubmit = async () => {
   isTouched.value = true
-  if (isFormValid.value) {
+  if (!isFormValid.value) return
+
+  isLoading.value = true
+  try {
     await departmentsStore.submitTranslation({
       language: 'ru',
       name: form.value.name,
     })
+  } catch (error) {
+    console.error('Translation submission failed:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -51,6 +57,7 @@ const handleSubmit = async () => {
         class="mb-4"
         :error="isTouched && !form.name.trim()"
         :error-messages="isTouched && !form.name.trim() ? ['This field is required'] : []"
+        :disabled="isLoading"
         @blur="isTouched = true"
       />
     </VCardText>
@@ -59,8 +66,9 @@ const handleSubmit = async () => {
       <VBtn
         color="primary"
         variant="flat"
-        :disabled="!isFormValid"
+        :disabled="!isFormValid || isLoading"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
+        :loading="isLoading"
         class="px-4"
         @click="handleSubmit"
       >

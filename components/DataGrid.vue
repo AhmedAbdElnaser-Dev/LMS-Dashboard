@@ -19,6 +19,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  hidePreview: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['delete'])
@@ -152,7 +156,10 @@ const isImageColumn = key => {
           color="error"
           @click="initiateDelete(item)"
         />
-        <NuxtLink :to="`/dashboard/${props.name}/preview/${item.id}`">
+        <NuxtLink
+          v-if="!props.hidePreview"
+          :to="`/dashboard/${props.name}/preview/${item.id}`"
+        >
           <VBtn
             icon="tabler-eye"
             variant="text"

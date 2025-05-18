@@ -1,18 +1,25 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps({
-  opacity: { type: Number, default: 100 }
-});
+  opacity: { type: Number, default: 100 },
+})
 
 const overlayStyle = computed(() => ({
-  backgroundColor: `rgba(0, 0, 0, ${props.opacity / 100})`
-}));
+  backgroundColor: `rgba(0, 0, 0, ${props.opacity / 100})`,
+}))
 </script>
 
 <template>
-  <div class="loading-overlay" :style="overlayStyle">
-    <v-progress-circular indeterminate size="64" color="primary" />
+  <div
+    class="loading-overlay"
+    :style="overlayStyle"
+  >
+    <VProgressCircular
+      indeterminate
+      size="64"
+      color="primary"
+    />
   </div>
 </template>
 

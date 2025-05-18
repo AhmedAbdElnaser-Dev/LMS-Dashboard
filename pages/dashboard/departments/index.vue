@@ -5,8 +5,8 @@ import { onMounted } from "vue"
 
 const departmentsStore = useDepartmentsStore()
 
-onMounted(() => {
-  departmentsStore.fetchDepartments()
+onMounted(async () => {
+  await departmentsStore.fetchDepartments()
 })
 
 const headers = [
@@ -16,23 +16,26 @@ const headers = [
   { title: "Gender", key: "gender" },
   { title: "Actions", key: "actions", sortable: false },
 ]
+
+const deleteDepartment = async departmentId => {
+  console.log("Deleting department with ID:", departmentId)
+  try {
+    await departmentsStore.deleteDepartment(departmentId)
+    await departmentsStore.fetchDepartments()
+  } catch (error) {
+    console.error("Error deleting department:", error)
+  }
+}
 </script>
 
 <template>
   <div>
-    <p v-if="departmentsStore.loading">
-      Loading departments...
-    </p>
-    <p v-if="departmentsStore.error">
-      {{ departmentsStore.error }}
-    </p>
-
     <DataGrid
       :headers="headers"
       :items="departmentsStore.departments"
       :loading="departmentsStore.loading"
-      :on-delete="departmentsStore.deleteDepartment"
       name="departments"
+      @delete="deleteDepartment"
     >
       <template #item.supervisor="{ item }">
         {{ item.supervisor?.fullName || "N/A" }}

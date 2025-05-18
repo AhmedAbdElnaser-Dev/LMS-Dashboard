@@ -21,10 +21,8 @@ onMounted(async () => {
     try {
       loading.value = true
       await coursesStore.fetchCourses()
-      showSnackbar('Courses loaded successfully')
     } catch (err) {
       error.value = err.message || 'Failed to fetch courses'
-      showSnackbar(error.value, 'error')
     } finally {
       loading.value = false
     }
@@ -34,9 +32,7 @@ onMounted(async () => {
 const handleDelete = async id => {
   try {
     await coursesStore.deleteCourse(id)
-    showSnackbar('Course deleted successfully', 'success')
   } catch (err) {
-    showSnackbar(err.message || 'Failed to delete course', 'error')
   }
 }
 
@@ -55,15 +51,6 @@ const customActions = []
 </script>
 
 <template>
-  <VSnackbar
-    v-model="snackbar"
-    :color="snackbarColor"
-    location="bottom left"
-    timeout="3000"
-  >
-    {{ snackbarText }}
-  </VSnackbar>
-
   <DataGrid
     :headers="headers"
     :items="coursesStore.courses"

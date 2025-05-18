@@ -1,7 +1,7 @@
 <script setup>
 import GlobalSnackbar from '@/components/GlobalSnackbar.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
-import { useAuthStore } from '@/stores/useAuthStore.js'
+import { useAuthStore } from '@/stores/useAuthStore'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import { initConfigStore, useConfigStore } from '@core/stores/config'

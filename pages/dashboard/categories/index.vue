@@ -29,16 +29,13 @@ const formatDate = dateString => {
 
 <template>
   <div>
-    <p v-if="categoriesStore.loading">
-      Loading categories...
-    </p>
-
     <DataGrid
       :headers="headers"
       :items="categoriesStore.categories"
       :loading="categoriesStore.loading"
       name="categories"
-      :on-delete="handleDelete"
+      hide-preview
+      @delete="handleDelete"
     >
       <template #item.name="{ item }">
         <span>{{ item.name }}</span>
@@ -54,3 +51,7 @@ const formatDate = dateString => {
     </DataGrid>
   </div>
 </template>
+
+<style scoped>
+/* Add any specific styles for this component here */
+</style>

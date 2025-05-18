@@ -17,6 +17,7 @@
             class="mb-4"
             :error="isTouched.name && !form.name"
             :error-messages="isTouched.name && !form.name ? ['Name is required'] : []"
+            :disabled="isLoading"
             @blur="isTouched.name = true"
           />
         </VCol>
@@ -35,6 +36,7 @@
             class="mb-4"
             :error="isTouched.category && !form.category"
             :error-messages="isTouched.category && !form.category ? ['Category is required'] : []"
+            :disabled="isLoading"
             @blur="isTouched.category = true"
           />
         </VCol>
@@ -53,6 +55,7 @@
             class="mb-4"
             :error="isTouched.supervisor && !form.supervisor"
             :error-messages="isTouched.supervisor && !form.supervisor ? ['Supervisor is required'] : []"
+            :disabled="isLoading"
             @blur="isTouched.supervisor = true"
           />
         </VCol>
@@ -71,6 +74,7 @@
             class="mb-4"
             :error="isTouched.gender && !form.gender"
             :error-messages="isTouched.gender && !form.gender ? ['Gender is required'] : []"
+            :disabled="isLoading"
             @blur="isTouched.gender = true"
           />
         </VCol>
@@ -78,11 +82,12 @@
     </VCardText>
     <VCardActions class="px-6 justify-start">
       <VBtn
-        :disabled="!isFormValid"
+        :disabled="!isFormValid || isLoading"
         color="primary"
         variant="flat"
         :prepend-icon="isEditMode ? 'tabler-pencil' : 'tabler-plus'"
         class="px-4"
+        :loading="isLoading"
         @click="handleSubmit"
       >
         {{ isEditMode ? "Update" : "Submit" }}
@@ -113,10 +118,18 @@ const isTouched = ref({
   gender: false,
 })
 
+const isLoading = ref(false)
 const isEditMode = computed(() => route.path.includes("edit"))
 
 onMounted(async () => {
-  await departmentsStore.fetchUsersAndCategories()
+  isLoading.value = true
+  try {
+    await departmentsStore.fetchUsersAndCategories()
+  } catch (error) {
+    console.error("Failed to load initial data:", error)
+  } finally {
+    isLoading.value = false
+  }
 })
 
 watch(() => departmentsStore.department, newDepartment => {
@@ -148,15 +161,18 @@ const isFormValid = computed(() =>
   form.value.gender.trim() !== '',
 )
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   isTouched.value.name = true
   isTouched.value.category = true
   isTouched.value.supervisor = true
   isTouched.value.gender = true
 
-  if (isFormValid.value) {
+  if (!isFormValid.value) return
+
+  isLoading.value = true
+  try {
     if (isEditMode.value) {
-      departmentsStore.updateDepartment(route.params.id, {
+      await departmentsStore.updateDepartment(route.params.id, {
         id: route.params.id,
         name: form.value.name,
         categoryId: form.value.category,
@@ -164,13 +180,27 @@ const handleSubmit = () => {
         gender: form.value.gender,
       })
     } else {
-      departmentsStore.addDepartment({
+      await departmentsStore.addDepartment({
         name: form.value.name,
         categoryId: form.value.category,
         supervisorId: form.value.supervisor,
         gender: form.value.gender,
       })
+
+      // Reset form after successful submission in add mode
+      if (!isEditMode.value) {
+        form.value = { name: '', category: '', supervisor: '', gender: '' }
+        isTouched.value = { name: false, category: false, supervisor: false, gender: false }
+      }
     }
+  } catch (error) {
+    console.error("Form submission failed:", error)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
+
+<style scoped>
+/* Empty */
+</style>

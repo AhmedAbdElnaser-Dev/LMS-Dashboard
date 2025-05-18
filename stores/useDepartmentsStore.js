@@ -1,4 +1,5 @@
-import api from "@/utils/api" // assuming you have an api helper
+import { useSnackbarStore } from "@/stores/snackbar"
+import api from "@/utils/api"
 import { defineStore } from "pinia"
 import { ref } from "vue"
 
@@ -9,6 +10,7 @@ export const useDepartmentsStore = defineStore("departments", () => {
   const categories = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const snackbar = useSnackbarStore()
 
   const fetchDepartments = async () => {
     loading.value = true
@@ -58,34 +60,31 @@ export const useDepartmentsStore = defineStore("departments", () => {
   }
 
   const addDepartment = async departmentData => {
-    loading.value = true
     error.value = null
     try {
       await api().post("/Departments", departmentData)
       await fetchDepartments()
+      snackbar.show("Department added successfully", "success")
     } catch (err) {
       error.value = err.message || "Failed to add department"
-    } finally {
-      loading.value = false
+      snackbar.show(error.value, "error")
     }
   }
 
   const updateDepartment = async (id, departmentData) => {
-    loading.value = true
     error.value = null
     try {
       await api().put(`/Departments/${id}`, departmentData)
-      await fetchDepartments()
+      snackbar.show("Department updated successfully", "success")
     } catch (err) {
       error.value = err.message || `Failed to update department with ID ${id}`
-    } finally {
-      loading.value = false
+      snackbar.show(error.value, "error")
     }
   }
 
   const addTranslation = async ({ departmentId, language, name }) => {
     try {
-      const res = await api().post("/Departments/transalations", {
+      const res = await api().post("/Departments/translations", {
         departmentId,
         language,
         name,
@@ -97,10 +96,13 @@ export const useDepartmentsStore = defineStore("departments", () => {
           [language]: res.data,
         }
       }
-      
+
+      snackbar.show("Translation added successfully", "success")
+
       return res.data
     } catch (error) {
       console.error("Error adding translation:", error)
+      snackbar.show("Failed to add translation", "error")
       throw error.response?.data?.message || "Failed to add translation"
     }
   }
@@ -116,10 +118,13 @@ export const useDepartmentsStore = defineStore("departments", () => {
       if (department.value) {
         department.value.translations[language] = res.data
       }
-      
+
+      snackbar.show("Translation updated successfully", "success")
+
       return res.data
     } catch (error) {
       console.error("Error editing translation:", error)
+      snackbar.error("Failed to update translation", "error")
       throw error.response?.data?.message || "Failed to update translation"
     }
   }
@@ -127,7 +132,7 @@ export const useDepartmentsStore = defineStore("departments", () => {
   const submitTranslation = async ({ language, name, description }) => {
     if (!department.value) {
       console.error("No selected department to update")
-      
+
       return
     }
 
@@ -152,7 +157,6 @@ export const useDepartmentsStore = defineStore("departments", () => {
   }
 
   const deleteDepartment = async depId => {
-    loading.value = true
     error.value = null
     try {
       await api().delete(`/Departments/${depId}`)
@@ -160,10 +164,10 @@ export const useDepartmentsStore = defineStore("departments", () => {
       if (department.value && department.value.id === depId) {
         department.value = null
       }
+      snackbar.show("Department deleted successfully", "success")
     } catch (err) {
       error.value = err.message || `Failed to delete department with ID ${depId}`
-    } finally {
-      loading.value = false
+      snackbar.show(error.value, "error")
     }
   }
 
