@@ -65,7 +65,7 @@
         >
           <VSelect
             v-model="form.gender"
-            label="Gender"
+            label="Type"
             :items="genders"
             item-title="title"
             item-value="value"

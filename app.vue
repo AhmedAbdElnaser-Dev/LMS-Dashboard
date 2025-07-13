@@ -7,20 +7,27 @@ import initCore from '@core/initCore'
 import { initConfigStore, useConfigStore } from '@core/stores/config'
 import { hexToRgb } from '@layouts/utils'
 import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
 import { useTheme } from 'vuetify'
 
 const { global } = useTheme()
 
-// ℹ️ Sync current theme with initial loader theme
 initCore()
 initConfigStore()
 
 const configStore = useConfigStore()
-const authStore = useAuthStore() // Use auth store
-const { loading } = storeToRefs(authStore) // Make loading reactive
+const authStore = useAuthStore()
+const { loading } = storeToRefs(authStore)
 
 const { isMobile } = useDevice()
 if (isMobile) configStore.appContentLayoutNav = 'vertical'
+
+// Initialize auth store
+onMounted(() => {
+  if (!authStore.isInitialized) {
+    authStore.initialize()
+  }
+})
 </script>
 
 <template>

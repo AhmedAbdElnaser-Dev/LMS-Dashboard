@@ -10,7 +10,6 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 definePageMeta({
@@ -29,27 +28,6 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 const authStore = useAuthStore()
 const loginError = ref(null)
 const router = useRouter()
-
-async function verify() {
-  try {
-    console.log('Calling verify...')
-
-    const result = await authStore.verifyUser()
-
-    console.log('Verify result:', authStore.user)
-    if (result && result.status === 200) {
-      console.log('Verification successful, redirecting to dashboard...')
-      router.push('/dashboard')
-    }
-  } catch (error) {
-    console.error('Verify failed:', error)
-  }
-}
-
-onMounted(() => {
-  console.log('Component mounted, triggering verify...')
-  verify()
-})
 
 async function handleLogin(e) {
   e.preventDefault()
@@ -192,6 +170,7 @@ async function handleLogin(e) {
                 <VBtn
                   block
                   type="submit"
+                  :loading="authStore.loading"
                 >
                   Login
                 </VBtn>

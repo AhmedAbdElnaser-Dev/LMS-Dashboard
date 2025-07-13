@@ -24,9 +24,10 @@ export default [
     to: { name: 'dashboard-courses' },
     icon: { icon: 'tabler-school' },
   },
-  {
-    title: 'Users',
-    to: { name: 'dashboard-users' },
-    icon: { icon: 'tabler-users' },
-  },
-];
+
+  // {
+  //   title: 'Users',
+  //   to: { name: 'dashboard-users' },
+  //   icon: { icon: 'tabler-users' },
+  // },
+]

@@ -12,7 +12,7 @@ const bookId = route.params.id
 // Fetch book on mount
 onMounted(async () => {
   if (bookId) {
-    store.fetchCategoryById(bookId)
+    await store.fetchCategoryById(bookId)
   }
 })
 

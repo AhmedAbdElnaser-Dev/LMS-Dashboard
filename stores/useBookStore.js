@@ -136,7 +136,7 @@ export const useBooksStore = defineStore('books', () => {
     }
   }
 
-  const submitTranslation = async ({ language, name, description }) => {
+  const submitTranslation = async ({ bookId, language, name, description }) => {
     if (!selectedBook.value) {
       console.error('No selected book to update')
       snackbar.show('No selected book', 'error')
@@ -149,14 +149,14 @@ export const useBooksStore = defineStore('books', () => {
     try {
       if (!arTranslation || arTranslation.name === '') {
         await addTranslation({
-          bookId: selectedBook.value.id,
+          bookId,
           language,
           name,
           description,
         })
       } else {
         await editTranslation({
-          id: arTranslation.id,
+          id: bookId,
           language,
           name,
           description,

@@ -6,29 +6,24 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const booksStore = useBooksStore()
 
-// Loading state for async operations
 const isLoading = ref(false)
 
-// Form state
 const form = ref({
   name: '',
   description: '',
 })
 
-// Track touched state for validation
 const isTouched = ref({
   name: false,
   description: false,
 })
 
-// Determine edit mode based on Englush translation existence
 const isEditMode = computed(() => {
   const enTranslation = booksStore.selectedBook?.translations?.en
 
   return enTranslation && enTranslation.name !== ''
 })
 
-// Fetch book data on mount if needed
 onMounted(async () => {
   if (!booksStore.selectedBook && route.params.id) {
     try {
@@ -47,27 +42,27 @@ onMounted(async () => {
   form.value.description = enTranslation?.description || ''
 })
 
-// Form validation
 const isFormValid = computed(
   () => form.value.name.trim() !== '' && form.value.description.trim() !== '',
 )
 
-// Handle form submission
 const handleSubmit = async () => {
   isTouched.value.name = true
   isTouched.value.description = true
+
+  console.log(route.params.id)
 
   if (!isFormValid.value) return
 
   try {
     isLoading.value = true
     await booksStore.submitTranslation({
+      bookId: route.params.id,
       language: 'en',
       name: form.value.name,
       description: form.value.description,
     })
 
-    // Optionally reset form in add mode
     if (!isEditMode.value) {
       form.value = { name: '', description: '' }
       isTouched.value = { name: false, description: false }

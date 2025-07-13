@@ -5,16 +5,6 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Books',
-    to: { name: 'dashboard-books' },
-    icon: { icon: 'tabler-book' },
-  },
-  {
-    title: 'Categories',
-    to: { name: 'dashboard-categories' },
-    icon: { icon: 'tabler-category' },
-  },
-  {
     title: 'Departments',
     to: { name: 'dashboard-departments' },
     icon: { icon: 'tabler-building' },
@@ -25,8 +15,19 @@ export default [
     icon: { icon: 'tabler-school' },
   },
   {
-    title: 'Users',
-    to: { name: 'dashboard-users' },
-    icon: { icon: 'tabler-users' },
+    title: 'Books',
+    to: { name: 'dashboard-books' },
+    icon: { icon: 'tabler-book' },
   },
-];
+  {
+    title: 'Categories',
+    to: { name: 'dashboard-categories' },
+    icon: { icon: 'tabler-category' },
+  },
+
+  // {
+  //   title: 'Users',
+  //   to: { name: 'dashboard-users' },
+  //   icon: { icon: 'tabler-users' },
+  // },
+]

@@ -58,7 +58,7 @@ export const useCategoriesStore = defineStore("categories", () => {
   async function addCategory(categoryData) {
     error.value = null
     try {
-      const res = await api().post("/Categories", categoryData)
+      const res = await api().post("/Categories", String(categoryData.name))
       if (res.status === 201 || res.status === 200) {
         const newCategory = {
           ...res.data,
@@ -81,7 +81,7 @@ export const useCategoriesStore = defineStore("categories", () => {
   async function updateCategory({ id, ...categoryData }) {
     error.value = null
     try {
-      const res = await api().put(`/Categories/${id}`, categoryData)
+      const res = await api().put(`/Categories/${id}`, String(categoryData.name))
       if (res.status === 200) {
         const updatedCategory = {
           ...res.data,
